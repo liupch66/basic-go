@@ -1,11 +1,13 @@
 package web
 
 import (
-	"fmt"
 	"net/http"
 
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-gonic/gin"
+
+	"basic-go/webook/internal/domain"
+	"basic-go/webook/internal/service"
 )
 
 const (
@@ -16,12 +18,14 @@ const (
 type UserHandler struct {
 	emailRegexp    *regexp.Regexp
 	passwordRegexp *regexp.Regexp
+	svc            *service.UserService
 }
 
-func NewUserHandler() *UserHandler {
+func NewUserHandler(svc *service.UserService) *UserHandler {
 	return &UserHandler{
 		emailRegexp:    regexp.MustCompile(emailRegexPattern, regexp.None),
 		passwordRegexp: regexp.MustCompile(passwordRegexPattern, regexp.None),
+		svc:            svc,
 	}
 }
 
@@ -72,8 +76,16 @@ func (u *UserHandler) Signup(ctx *gin.Context) {
 		return
 	}
 
+	err = u.svc.Signup(ctx, domain.User{
+		Email:    req.Email,
+		Password: req.Password,
+	})
+	if err != nil {
+		ctx.String(http.StatusOK, "系统错误")
+		return
+	}
+
 	ctx.String(http.StatusOK, "注册成功！")
-	fmt.Printf("%v", req)
 }
 
 func (u *UserHandler) Login(ctx *gin.Context) {
