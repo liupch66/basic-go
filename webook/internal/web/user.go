@@ -1,6 +1,7 @@
 package web
 
 import (
+	"errors"
 	"net/http"
 
 	regexp "github.com/dlclark/regexp2"
@@ -81,6 +82,9 @@ func (u *UserHandler) Signup(ctx *gin.Context) {
 		Password: req.Password,
 	})
 	if err != nil {
+		if errors.Is(err, service.ErrUserDuplicateEmail) {
+			ctx.String(http.StatusOK, "邮箱重复，请换一个邮箱")
+		}
 		ctx.String(http.StatusOK, "系统错误")
 		return
 	}
