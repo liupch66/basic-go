@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -13,6 +15,7 @@ import (
 	"basic-go/webook/internal/repository/dao"
 	"basic-go/webook/internal/service"
 	"basic-go/webook/internal/web"
+	"basic-go/webook/internal/web/middleware"
 )
 
 func main() {
@@ -56,6 +59,11 @@ func initWebServer() *gin.Engine {
 		},
 		MaxAge: 12 * time.Hour,
 	}))
+	store := cookie.NewStore([]byte("secret"))
+	// 设置 cookie 的键值对，ssid: sessionID（由服务器自动生成，是一个加密的标识符）
+	server.Use(sessions.Sessions("ssid", store))
+	// 登录校验
+	server.Use(middleware.NewLoginMiddlewareBuilder().Build())
 	return server
 }
 
