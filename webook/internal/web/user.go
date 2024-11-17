@@ -2,8 +2,8 @@ package web
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
+	"time"
 
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-contrib/sessions"
@@ -42,7 +42,8 @@ func (u *UserHandler) RegisterRoutes(server *gin.Engine) {
 		// jwt 机制
 		ug.POST("/login", u.LoginJWT)
 		ug.POST("/edit", u.Edit)
-		ug.GET("/profile", u.Profile)
+		// ug.GET("/profile", u.Profile)
+		ug.GET("/profile", u.ProfileJWT)
 	}
 }
 
@@ -134,6 +135,11 @@ func (u *UserHandler) Login(ctx *gin.Context) {
 	ctx.String(http.StatusOK, "登录成功")
 }
 
+type UserClaims struct {
+	jwt.RegisteredClaims
+	UserId int64
+}
+
 func (u *UserHandler) LoginJWT(ctx *gin.Context) {
 	type LoginReq struct {
 		Email    string `json:"email"`
@@ -153,15 +159,19 @@ func (u *UserHandler) LoginJWT(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "系统错误")
 		return
 	}
-	token := jwt.New(jwt.SigningMethodHS512)
+	claims := UserClaims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute)),
+		},
+		UserId: user.Id,
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
 	tokenStr, err := token.SignedString([]byte("C%B|]SiozBE,S)X>ru,3Uu0+rl1Lj.@O"))
 	if err != nil {
 		ctx.String(http.StatusOK, "系统错误")
 		return
 	}
 	ctx.Header("x-jwt-token", tokenStr)
-	fmt.Println(tokenStr)
-	fmt.Println(user)
 
 	ctx.String(http.StatusOK, "登录成功")
 }
@@ -171,5 +181,21 @@ func (u *UserHandler) Edit(ctx *gin.Context) {
 }
 
 func (u *UserHandler) Profile(ctx *gin.Context) {
-	ctx.String(http.StatusOK, "这是你的 profile")
+	userId := sessions.Default(ctx).Get("userId")
+	ctx.String(http.StatusOK, "This is your profile，your userId: %d", userId.(int64))
+}
+
+func (u *UserHandler) ProfileJWT(ctx *gin.Context) {
+	c, _ := ctx.Get("claims")
+	// 忽略 exist 也行，因为下一步还有一个类型断言，nil 也会导致断言失败 !ok
+	// if !exist {
+	// 	ctx.String(http.StatusOK, "系统错误")
+	// 	return
+	// }
+	claims, ok := c.(UserClaims)
+	if !ok {
+		ctx.String(http.StatusOK, "系统错误")
+		return
+	}
+	ctx.String(http.StatusOK, "This is your profile，your userId: %d", claims.UserId)
 }

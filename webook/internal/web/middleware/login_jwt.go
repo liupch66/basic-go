@@ -1,11 +1,15 @@
 package middleware
 
 import (
+	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+
+	"basic-go/webook/internal/web"
 )
 
 type LoginJWTMiddlewareBuilder struct{}
@@ -30,12 +34,26 @@ func (*LoginJWTMiddlewareBuilder) Build() gin.HandlerFunc {
 			ctx.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
-		token, err := jwt.Parse(segments[1], func(*jwt.Token) (interface{}, error) {
+		var claims web.UserClaims
+		token, err := jwt.ParseWithClaims(segments[1], &claims, func(*jwt.Token) (interface{}, error) {
 			return []byte("C%B|]SiozBE,S)X>ru,3Uu0+rl1Lj.@O"), nil
 		})
-		if err != nil || !token.Valid {
+		if err != nil || !token.Valid || claims.UserId == 0 {
 			ctx.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
+
+		// 刷新 jwt
+		if claims.ExpiresAt.Sub(time.Now()) < time.Second*50 {
+			claims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(time.Minute))
+			tokenStr, err := token.SignedString([]byte("C%B|]SiozBE,S)X>ru,3Uu0+rl1Lj.@O"))
+			if err != nil {
+				log.Println("jwt 续约失败：", err)
+			}
+			ctx.Header("x-jwt-token", tokenStr)
+		}
+		
+		// profile 接口可以复用 claims，不用再重新解析一遍
+		ctx.Set("claims", claims)
 	}
 }

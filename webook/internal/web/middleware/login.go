@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"encoding/gob"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -37,7 +36,7 @@ func (*LoginMiddlewareBuilder) Build() gin.HandlerFunc {
 		const timeKey = "update_time"
 		updateTime := sess.Get(timeKey)
 		updateTimeVal, ok := updateTime.(time.Time)
-		fmt.Printf("updateTime: %v, type: %T\n ", updateTime, updateTime)
+		// fmt.Printf("updateTime: %v, type: %T\n ", updateTime, updateTime)
 		// 初次登录或超过 10s 刷新
 		if updateTime == nil || (ok && now.Sub(updateTimeVal) > time.Second*10) {
 			sess.Set(timeKey, now)
