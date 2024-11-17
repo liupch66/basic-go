@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
+	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -26,7 +26,10 @@ func main() {
 	// 注册用户相关接口路由
 	u.RegisterRoutes(server)
 
-	server.Run(":8080")
+	err := server.Run(":8080")
+	if err != nil {
+		panic(err)
+	}
 }
 
 func initDB() *gorm.DB {
@@ -59,7 +62,17 @@ func initWebServer() *gin.Engine {
 		},
 		MaxAge: 12 * time.Hour,
 	}))
-	store := cookie.NewStore([]byte("secret"))
+
+	// cookie: 基于 cookie 的实现
+	// store := cookie.NewStore([]byte("secret"))
+	// memstore: 基于内存的实现，单机单实例部署
+	// store := memstore.NewStore([]byte("C%B|]SiozBE,S)X>ru,3Uu0+rl1Lj.@O"), []byte("1x6`djgK$0KM].Sz:SqLa?BF=OJhuIRG"))
+	// redis: 基于 redis 的实现，多实例部署
+	store, err := redis.NewStore(16, "tcp", "localhost:6379", "",
+		[]byte("C%B|]SiozBE,S)X>ru,3Uu0+rl1Lj.@O"), []byte("1x6`djgK$0KM].Sz:SqLa?BF=OJhuIRG"))
+	if err != nil {
+		panic(err)
+	}
 	// 设置 cookie 的键值对，ssid: sessionID（由服务器自动生成，是一个加密的标识符）
 	server.Use(sessions.Sessions("ssid", store))
 	// 登录校验

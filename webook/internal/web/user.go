@@ -114,7 +114,17 @@ func (u *UserHandler) Login(ctx *gin.Context) {
 	sess := sessions.Default(ctx)
 	// 设置 session 的键值对， userId: user.Id
 	sess.Set("userId", user.Id)
-	sess.Save()
+	sess.Options(sessions.Options{
+		// HttpOnly	禁止 JavaScript 访问 Cookie		防止 XSS 窃取 Cookie
+		// Secure	限制 Cookie 仅通过 HTTPS 传输		防止中间人攻击
+		// Secure:   true,
+		// HttpOnly: true,
+		MaxAge: 60,
+	})
+	err = sess.Save()
+	if err != nil {
+		ctx.String(http.StatusOK, "系统错误")
+	}
 
 	ctx.String(http.StatusOK, "登录成功")
 }
