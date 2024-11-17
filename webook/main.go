@@ -52,7 +52,10 @@ func initWebServer() *gin.Engine {
 	server.Use(cors.New(cors.Config{
 		// AllowOrigins:     []string{"https://localhost:3000"},
 		// AllowMethods:     []string{"POST"},
-		AllowHeaders:     []string{"Authorization", "Content-Type"},
+		// 指定客户端在跨域请求中允许发送的自定义请求头，告诉浏览器，哪些请求头是允许随请求发送到服务器的
+		AllowHeaders: []string{"Authorization", "Content-Type"},
+		// 指定客户端可以在响应中访问的自定义响应头，告诉浏览器，在跨域响应中，哪些头部可以被 JavaScript 代码访问
+		ExposeHeaders:    []string{"x-jwt-token"},
 		AllowCredentials: true,
 		AllowOriginFunc: func(origin string) bool {
 			if strings.HasPrefix(origin, "http://localhost") {
@@ -75,8 +78,10 @@ func initWebServer() *gin.Engine {
 	}
 	// 设置 cookie 的键值对，ssid: sessionID（由服务器自动生成，是一个加密的标识符）
 	server.Use(sessions.Sessions("ssid", store))
-	// 登录校验
-	server.Use(middleware.NewLoginMiddlewareBuilder().Build())
+	// session 机制 登录校验
+	// server.Use(middleware.NewLoginMiddlewareBuilder().Build())
+	// jwt 机制 登录校验
+	server.Use(middleware.NewLoginJWTMiddlewareBuilder().Build())
 	return server
 }
 
