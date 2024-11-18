@@ -8,6 +8,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
+	redisV9 "github.com/redis/go-redis/v9"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
@@ -16,6 +17,7 @@ import (
 	"basic-go/webook/internal/service"
 	"basic-go/webook/internal/web"
 	"basic-go/webook/internal/web/middleware"
+	"basic-go/webook/pkg/ginx/middleware/ratelimit"
 )
 
 func main() {
@@ -82,6 +84,13 @@ func initWebServer() *gin.Engine {
 	// server.Use(middleware.NewLoginMiddlewareBuilder().Build())
 	// jwt 机制 登录校验
 	server.Use(middleware.NewLoginJWTMiddlewareBuilder().Build())
+	redisCli := redisV9.NewClient(&redisV9.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		// Redis 提供多个逻辑数据库（默认 16 个，编号从 0 到 15）。每个数据库是独立的，但它们共享同一个实例的资源（如内存）。
+		DB: 1,
+	})
+	server.Use(ratelimit.NewBuilder(redisCli, time.Minute, 100).Build())
 	return server
 }
 
