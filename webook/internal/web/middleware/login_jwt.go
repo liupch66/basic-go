@@ -42,6 +42,12 @@ func (*LoginJWTMiddlewareBuilder) Build() gin.HandlerFunc {
 			ctx.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
+		// fmt.Println("current userAgent == last userAgent: ", claims.UserAgent == ctx.Request.UserAgent())
+		if claims.UserAgent != ctx.Request.UserAgent() {
+			// 严重的安全问题，要监控
+			ctx.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
 
 		// 刷新 jwt
 		if claims.ExpiresAt.Sub(time.Now()) < time.Second*50 {
@@ -52,7 +58,7 @@ func (*LoginJWTMiddlewareBuilder) Build() gin.HandlerFunc {
 			}
 			ctx.Header("x-jwt-token", tokenStr)
 		}
-		
+
 		// profile 接口可以复用 claims，不用再重新解析一遍
 		ctx.Set("claims", claims)
 	}

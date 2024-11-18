@@ -2,6 +2,7 @@ package ratelimit
 
 import (
 	_ "embed"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -42,10 +43,15 @@ func (b *Builder) ipLimit(ctx *gin.Context) (bool, error) {
 func (b *Builder) Build() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		limited, err := b.ipLimit(ctx)
-		if err != nil {
+		if !errors.Is(err, redis.Nil) {
 			ctx.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
+		// 坑！！！！！！这里返回的 err == redis.Nil == RedisError("redis: nil") , 而 != nil
+		// if err != nil {
+		// 	ctx.AbortWithStatus(http.StatusInternalServerError)
+		// 	return
+		// }
 		if limited {
 			ctx.AbortWithStatus(http.StatusTooManyRequests)
 			return

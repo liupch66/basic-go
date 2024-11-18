@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"encoding/gob"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -48,6 +49,7 @@ func (*LoginMiddlewareBuilder) Build() gin.HandlerFunc {
 				ctx.AbortWithStatus(http.StatusInternalServerError)
 				return
 			}
+			fmt.Println("test")
 		}
 	}
 }
