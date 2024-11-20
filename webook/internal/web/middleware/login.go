@@ -11,20 +11,31 @@ import (
 )
 
 type LoginMiddlewareBuilder struct {
+	paths []string
 }
 
 func NewLoginMiddlewareBuilder() *LoginMiddlewareBuilder {
 	return &LoginMiddlewareBuilder{}
 }
 
-func (*LoginMiddlewareBuilder) Build() gin.HandlerFunc {
+func (l *LoginMiddlewareBuilder) IgnorePaths(paths ...string) *LoginMiddlewareBuilder {
+	l.paths = append(l.paths, paths...)
+	return l
+}
+
+func (l *LoginMiddlewareBuilder) Build() gin.HandlerFunc {
 	// 在 gin-session 中，存储非基础类型（如 time.Time 或自定义结构体）时，必须通过 gob.Register 注册。
 	// 否则会报错：gob: type not registered for interface: time.Time
 	gob.Register(time.Time{})
 	return func(ctx *gin.Context) {
 		// 注册和登录不需要登录校验
-		if ctx.Request.URL.Path == "/users/signup" || ctx.Request.URL.Path == "/users/login" {
-			return
+		// if ctx.Request.URL.Path == "/users/signup" || ctx.Request.URL.Path == "/users/login" {
+		// 	return
+		// }
+		for _, path := range l.paths {
+			if ctx.Request.URL.Path == path {
+				return
+			}
 		}
 		sess := sessions.Default(ctx)
 		userId := sess.Get("userId")

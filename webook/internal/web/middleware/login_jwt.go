@@ -12,16 +12,28 @@ import (
 	"basic-go/webook/internal/web"
 )
 
-type LoginJWTMiddlewareBuilder struct{}
+type LoginJWTMiddlewareBuilder struct {
+	paths []string
+}
 
 func NewLoginJWTMiddlewareBuilder() *LoginJWTMiddlewareBuilder {
 	return &LoginJWTMiddlewareBuilder{}
 }
 
-func (*LoginJWTMiddlewareBuilder) Build() gin.HandlerFunc {
+func (l *LoginJWTMiddlewareBuilder) IgnorePaths(paths ...string) *LoginJWTMiddlewareBuilder {
+	l.paths = append(l.paths, paths...)
+	return l
+}
+
+func (l *LoginJWTMiddlewareBuilder) Build() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		if ctx.Request.URL.Path == "/users/signup" || ctx.Request.URL.Path == "/users/login" {
-			return
+		// if ctx.Request.URL.Path == "/users/signup" || ctx.Request.URL.Path == "/users/login" {
+		// 	return
+		// }
+		for _, path := range l.paths {
+			if ctx.Request.URL.Path == path {
+				return
+			}
 		}
 		tokenHeader := ctx.GetHeader("Authorization")
 		if tokenHeader == "" {

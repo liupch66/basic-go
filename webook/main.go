@@ -7,12 +7,13 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/redis"
+	"github.com/gin-contrib/sessions/memstore"
 	"github.com/gin-gonic/gin"
-	redisV9 "github.com/redis/go-redis/v9"
+	redis "github.com/redis/go-redis/v9"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
+	"basic-go/webook/config"
 	"basic-go/webook/internal/repository"
 	"basic-go/webook/internal/repository/dao"
 	"basic-go/webook/internal/service"
@@ -22,14 +23,13 @@ import (
 )
 
 func main() {
-	// db := initDB()
-	// server := initWebServer()
-	//
-	// u := initUserHandler(db)
-	// // 注册用户相关接口路由
-	// u.RegisterRoutes(server)
+	db := initDB()
+	server := initWebServer()
 
-	server := gin.Default()
+	u := initUserHandler(db)
+	// 注册用户相关接口路由
+	u.RegisterRoutes(server)
+
 	server.GET("/hello", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "Hello, world!")
 	})
@@ -41,7 +41,7 @@ func main() {
 
 func initDB() *gorm.DB {
 	// GORM 连接数据库
-	db, err := gorm.Open(mysql.Open("root:root@tcp(localhost:3306)/webook"))
+	db, err := gorm.Open(mysql.Open(config.Config.DB.DSN))
 	if err != nil {
 		panic(err)
 	}
@@ -76,24 +76,24 @@ func initWebServer() *gin.Engine {
 	// cookie: 基于 cookie 的实现
 	// store := cookie.NewStore([]byte("secret"))
 	// memstore: 基于内存的实现，单机单实例部署
-	// store := memstore.NewStore([]byte("C%B|]SiozBE,S)X>ru,3Uu0+rl1Lj.@O"), []byte("1x6`djgK$0KM].Sz:SqLa?BF=OJhuIRG"))
+	store := memstore.NewStore([]byte("C%B|]SiozBE,S)X>ru,3Uu0+rl1Lj.@O"), []byte("1x6`djgK$0KM].Sz:SqLa?BF=OJhuIRG"))
 	// redis: 基于 redis 的实现，多实例部署
-	store, err := redis.NewStore(16, "tcp", "localhost:6379", "",
-		[]byte("C%B|]SiozBE,S)X>ru,3Uu0+rl1Lj.@O"), []byte("1x6`djgK$0KM].Sz:SqLa?BF=OJhuIRG"))
-	if err != nil {
-		panic(err)
-	}
+	// store, err := redis.NewStore(16, "tcp", "localhost:6379", "",
+	// 	[]byte("C%B|]SiozBE,S)X>ru,3Uu0+rl1Lj.@O"), []byte("1x6`djgK$0KM].Sz:SqLa?BF=OJhuIRG"))
+	// if err != nil {
+	// 	panic(err)
+	// }
 	// 设置 cookie 的键值对，ssid: sessionID（由服务器自动生成，是一个加密的标识符）
 	server.Use(sessions.Sessions("ssid", store))
 	// session 机制 登录校验
 	// server.Use(middleware.NewLoginMiddlewareBuilder().Build())
 	// jwt 机制 登录校验
-	server.Use(middleware.NewLoginJWTMiddlewareBuilder().Build())
-	redisCli := redisV9.NewClient(&redisV9.Options{
-		Addr:     "localhost:6379",
-		Password: "",
+	server.Use(middleware.NewLoginJWTMiddlewareBuilder().IgnorePaths("/hello", "/users/signup", "/users/login").Build())
+	redisCli := redis.NewClient(&redis.Options{
+		Addr:     config.Config.Redis.Addr,
+		Password: config.Config.Redis.Password,
 		// Redis 提供多个逻辑数据库（默认 16 个，编号从 0 到 15）。每个数据库是独立的，但它们共享同一个实例的资源（如内存）。
-		DB: 1,
+		DB: config.Config.Redis.DB,
 	})
 	server.Use(ratelimit.NewBuilder(redisCli, time.Minute, 100).Build())
 	return server
