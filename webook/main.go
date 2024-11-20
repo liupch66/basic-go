@@ -6,10 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-contrib/cors"
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/memstore"
 	"github.com/gin-gonic/gin"
-	redis "github.com/redis/go-redis/v9"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
@@ -19,7 +16,6 @@ import (
 	"basic-go/webook/internal/service"
 	"basic-go/webook/internal/web"
 	"basic-go/webook/internal/web/middleware"
-	"basic-go/webook/pkg/ginx/middleware/ratelimit"
 )
 
 func main() {
@@ -76,7 +72,7 @@ func initWebServer() *gin.Engine {
 	// cookie: 基于 cookie 的实现
 	// store := cookie.NewStore([]byte("secret"))
 	// memstore: 基于内存的实现，单机单实例部署
-	store := memstore.NewStore([]byte("C%B|]SiozBE,S)X>ru,3Uu0+rl1Lj.@O"), []byte("1x6`djgK$0KM].Sz:SqLa?BF=OJhuIRG"))
+	// store := memstore.NewStore([]byte("C%B|]SiozBE,S)X>ru,3Uu0+rl1Lj.@O"), []byte("1x6`djgK$0KM].Sz:SqLa?BF=OJhuIRG"))
 	// redis: 基于 redis 的实现，多实例部署
 	// store, err := redis.NewStore(16, "tcp", "localhost:6379", "",
 	// 	[]byte("C%B|]SiozBE,S)X>ru,3Uu0+rl1Lj.@O"), []byte("1x6`djgK$0KM].Sz:SqLa?BF=OJhuIRG"))
@@ -84,18 +80,18 @@ func initWebServer() *gin.Engine {
 	// 	panic(err)
 	// }
 	// 设置 cookie 的键值对，ssid: sessionID（由服务器自动生成，是一个加密的标识符）
-	server.Use(sessions.Sessions("ssid", store))
+	// server.Use(sessions.Sessions("ssid", store))
 	// session 机制 登录校验
 	// server.Use(middleware.NewLoginMiddlewareBuilder().Build())
 	// jwt 机制 登录校验
 	server.Use(middleware.NewLoginJWTMiddlewareBuilder().IgnorePaths("/hello", "/users/signup", "/users/login").Build())
-	redisCli := redis.NewClient(&redis.Options{
-		Addr:     config.Config.Redis.Addr,
-		Password: config.Config.Redis.Password,
-		// Redis 提供多个逻辑数据库（默认 16 个，编号从 0 到 15）。每个数据库是独立的，但它们共享同一个实例的资源（如内存）。
-		DB: config.Config.Redis.DB,
-	})
-	server.Use(ratelimit.NewBuilder(redisCli, time.Minute, 100).Build())
+	// redisCli := redis.NewClient(&redis.Options{
+	// 	Addr:     config.Config.Redis.Addr,
+	// 	Password: config.Config.Redis.Password,
+	// 	// Redis 提供多个逻辑数据库（默认 16 个，编号从 0 到 15）。每个数据库是独立的，但它们共享同一个实例的资源（如内存）。
+	// 	DB: config.Config.Redis.DB,
+	// })
+	// server.Use(ratelimit.NewBuilder(redisCli, time.Minute, 100).Build())
 	return server
 }
 

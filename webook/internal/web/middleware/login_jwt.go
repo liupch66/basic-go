@@ -63,7 +63,7 @@ func (l *LoginJWTMiddlewareBuilder) Build() gin.HandlerFunc {
 
 		// 刷新 jwt
 		if claims.ExpiresAt.Sub(time.Now()) < time.Second*50 {
-			claims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(time.Minute))
+			claims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(time.Minute * 30))
 			tokenStr, err := token.SignedString([]byte("C%B|]SiozBE,S)X>ru,3Uu0+rl1Lj.@O"))
 			if err != nil {
 				log.Println("jwt 续约失败：", err)

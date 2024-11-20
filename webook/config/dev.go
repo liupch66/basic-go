@@ -1,4 +1,4 @@
-//go:build dev
+//go:build !k8s
 
 package config
 
