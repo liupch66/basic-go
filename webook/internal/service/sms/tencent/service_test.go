@@ -44,7 +44,8 @@ func TestService_Send(t *testing.T) {
 		expectedErr error
 	}{
 		{
-			name:        "发送验证码成功",
+			name: "发送验证码成功",
+			// {1}为您的登录验证码，请于{2}分钟内填写，如非本人操作，请忽略本短信。
 			tplId:       "1977183",
 			params:      []string{"888", "5"},
 			numbers:     []string{number},
