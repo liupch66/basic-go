@@ -18,24 +18,29 @@ var (
 	ErrCodeVerifyExpired = repository.ErrCodeVerifyExpired
 )
 
-type CodeService struct {
-	repo   *repository.CodeRepository
+type CodeService interface {
+	Send(ctx context.Context, biz, phone string) error
+	Verify(ctx context.Context, biz, phone, inputCode string) (bool, error)
+}
+
+type codeService struct {
+	repo   repository.CodeRepository
 	smsSvc sms.Service
 }
 
-func NewCodeService(repo *repository.CodeRepository, smsSvc sms.Service) *CodeService {
-	return &CodeService{
+func NewCodeService(repo repository.CodeRepository, smsSvc sms.Service) CodeService {
+	return &codeService{
 		repo:   repo,
 		smsSvc: smsSvc,
 	}
 }
 
-func (svc *CodeService) generateCode() string {
+func (svc *codeService) generateCode() string {
 	// 验证码不足 6 位时，用前导 0 填充为 6 位
 	return fmt.Sprintf("%06d", rand.Intn(1000000))
 }
 
-func (svc *CodeService) Send(ctx context.Context, biz, phone string) error {
+func (svc *codeService) Send(ctx context.Context, biz, phone string) error {
 	code := svc.generateCode()
 	// 塞进 redis
 	err := svc.repo.Store(ctx, biz, phone, code)
@@ -46,7 +51,7 @@ func (svc *CodeService) Send(ctx context.Context, biz, phone string) error {
 	return svc.smsSvc.Send(ctx, codeTplId, []string{code, "10"}, phone)
 }
 
-func (svc *CodeService) Verify(ctx context.Context, biz, phone, inputCode string) (bool, error) {
+func (svc *codeService) Verify(ctx context.Context, biz, phone, inputCode string) (bool, error) {
 	ok, err := svc.repo.Verify(ctx, biz, phone, inputCode)
 	if errors.Is(err, repository.ErrCodeVerifyTooMany) {
 		// 在接入了告警之后，这边要告警，防止有人搞你

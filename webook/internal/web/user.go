@@ -29,11 +29,11 @@ type UserHandler struct {
 	emailRegexp    *regexp.Regexp
 	passwordRegexp *regexp.Regexp
 	phoneRegex     *regexp.Regexp
-	userSvc        *service.UserService
-	codeSvc        *service.CodeService
+	userSvc        service.UserService
+	codeSvc        service.CodeService
 }
 
-func NewUserHandler(userSvc *service.UserService, codeSvc *service.CodeService) *UserHandler {
+func NewUserHandler(userSvc service.UserService, codeSvc service.CodeService) *UserHandler {
 	return &UserHandler{
 		emailRegexp:    regexp.MustCompile(emailRegexPattern, regexp.None),
 		passwordRegexp: regexp.MustCompile(passwordRegexPattern, regexp.None),

@@ -21,22 +21,27 @@ var (
 	ErrCodeVerifyExpired = errors.New("验证码已过期")
 )
 
-type CodeCache struct {
+type CodeCache interface {
+	Set(ctx context.Context, biz, phone, code string) error
+	Verify(ctx context.Context, biz, phone, inputCode string) (bool, error)
+}
+
+type RedisCodeCache struct {
 	cmd redis.Cmdable
 }
 
-func NewCodeCache(cmd redis.Cmdable) *CodeCache {
-	return &CodeCache{
+func NewCodeCache(cmd redis.Cmdable) CodeCache {
+	return &RedisCodeCache{
 		cmd: cmd,
 	}
 }
 
-func (cache *CodeCache) key(biz, phone string) string {
+func (cache *RedisCodeCache) key(biz, phone string) string {
 	// key 设置为 phone_code:$biz:$phone
 	return fmt.Sprintf("phone_code:%s:%s", biz, phone)
 }
 
-func (cache *CodeCache) Set(ctx context.Context, biz, phone, code string) error {
+func (cache *RedisCodeCache) Set(ctx context.Context, biz, phone, code string) error {
 	res, err := cache.cmd.Eval(ctx, luaSetCode, []string{cache.key(biz, phone)}, code).Int()
 	if err != nil {
 		return err
@@ -51,7 +56,7 @@ func (cache *CodeCache) Set(ctx context.Context, biz, phone, code string) error 
 	}
 }
 
-func (cache *CodeCache) Verify(ctx context.Context, biz, phone, inputCode string) (bool, error) {
+func (cache *RedisCodeCache) Verify(ctx context.Context, biz, phone, inputCode string) (bool, error) {
 	res, err := cache.cmd.Eval(ctx, luaVerifyCode, []string{cache.key(biz, phone)}, inputCode).Int()
 	if err != nil {
 		return false, err
