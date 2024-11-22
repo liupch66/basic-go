@@ -11,8 +11,9 @@ import (
 )
 
 var (
-	ErrUserDuplicateEmail     = repository.ErrUserDuplicateEmail
+	ErrUserDuplicate          = repository.ErrUserDuplicate
 	ErrInvalidEmailOrPassword = errors.New("邮箱或密码错误")
+	ErrUserNotFound           = repository.ErrUserNotFound
 )
 
 type UserService struct {
@@ -51,4 +52,26 @@ func (svc *UserService) Login(ctx context.Context, email, password string) (doma
 
 func (svc *UserService) Profile(ctx context.Context, id int64) (domain.User, error) {
 	return svc.repo.FindById(ctx, id)
+}
+
+func (svc *UserService) FindOrCreate(ctx context.Context, phone string) (domain.User, error) {
+	// 快路径，大部分请求都会进来这里
+	u, err := svc.repo.FindByPhone(ctx, phone)
+	if !errors.Is(err, ErrUserNotFound) {
+		// 注意 err == nil 也会来这里，返回 u
+		return u, err
+	}
+	// 触发降级之后不执行慢路径
+	// if ctx.Value("降级") == "true" {
+	// 	return domain.User{}, errors.New("触发系统降级")
+	// }
+	// 慢路径
+	// 执行注册
+	err = svc.repo.Create(ctx, domain.User{Phone: phone})
+	// ErrUserDuplicate 错误表明新用户已经存在，可能是并发情况下的重复创建
+	if err != nil && !errors.Is(err, ErrUserDuplicate) {
+		return domain.User{}, err
+	}
+	// 这里会遇到主从延迟的问题
+	return svc.repo.FindByPhone(ctx, phone)
 }

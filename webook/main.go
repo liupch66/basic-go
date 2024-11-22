@@ -7,22 +7,27 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 
 	"basic-go/webook/config"
 	"basic-go/webook/internal/repository"
+	"basic-go/webook/internal/repository/cache"
 	"basic-go/webook/internal/repository/dao"
 	"basic-go/webook/internal/service"
+	"basic-go/webook/internal/service/sms/memory"
 	"basic-go/webook/internal/web"
 	"basic-go/webook/internal/web/middleware"
 )
 
 func main() {
 	db := initDB()
+	redisCmd := initRedis()
 	server := initWebServer()
 
-	u := initUserHandler(db)
+	u := initUserHandler(db, redisCmd)
 	// 注册用户相关接口路由
 	u.RegisterRoutes(server)
 
@@ -37,7 +42,9 @@ func main() {
 
 func initDB() *gorm.DB {
 	// GORM 连接数据库
-	db, err := gorm.Open(mysql.Open(config.Config.DB.DSN))
+	db, err := gorm.Open(mysql.Open(config.Config.DB.DSN), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
 	if err != nil {
 		panic(err)
 	}
@@ -47,6 +54,16 @@ func initDB() *gorm.DB {
 		panic(err)
 	}
 	return db
+}
+
+func initRedis() redis.Cmdable {
+	redisCfg := config.Config.Redis
+	cmd := redis.NewClient(&redis.Options{
+		Addr:     redisCfg.Addr,
+		Password: redisCfg.Password,
+		DB:       redisCfg.DB,
+	})
+	return cmd
 }
 
 func initWebServer() *gin.Engine {
@@ -84,7 +101,9 @@ func initWebServer() *gin.Engine {
 	// session 机制 登录校验
 	// server.Use(middleware.NewLoginMiddlewareBuilder().Build())
 	// jwt 机制 登录校验
-	server.Use(middleware.NewLoginJWTMiddlewareBuilder().IgnorePaths("/hello", "/users/signup", "/users/login").Build())
+	server.Use(middleware.NewLoginJWTMiddlewareBuilder().
+		IgnorePaths("/hello", "/users/signup", "/users/login", "/users/login_sms/code/send", "/users/login_sms").
+		Build())
 	// redisCli := redis.NewClient(&redis.Options{
 	// 	Addr:     config.Config.Redis.Addr,
 	// 	Password: config.Config.Redis.Password,
@@ -95,11 +114,16 @@ func initWebServer() *gin.Engine {
 	return server
 }
 
-func initUserHandler(db *gorm.DB) *web.UserHandler {
+func initUserHandler(db *gorm.DB, cmd redis.Cmdable) *web.UserHandler {
 	// 初始化 UserHandler
 	ud := dao.NewUserDAO(db)
-	repo := repository.NewUserRepository(ud)
-	svc := service.NewUserService(repo)
-	u := web.NewUserHandler(svc)
+	userCache := cache.NewUserCache(cmd)
+	codeCache := cache.NewCodeCache(cmd)
+	userRepo := repository.NewUserRepository(ud, userCache)
+	codeRepo := repository.NewCodeRepository(codeCache)
+	userSvc := service.NewUserService(userRepo)
+	smsSvc := memory.NewService()
+	codeSvc := service.NewCodeService(codeRepo, smsSvc)
+	u := web.NewUserHandler(userSvc, codeSvc)
 	return u
 }

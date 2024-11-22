@@ -9,6 +9,7 @@ import (
 var (
 	ErrCodeSendTooMany   = cache.ErrCodeSendTooMany
 	ErrCodeVerifyTooMany = cache.ErrCodeVerifyTooMany
+	ErrCodeVerifyExpired = cache.ErrCodeVerifyExpired
 )
 
 type CodeRepository struct {

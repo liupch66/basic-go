@@ -2,6 +2,7 @@ package dao
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"time"
 
@@ -10,16 +11,20 @@ import (
 )
 
 var (
-	ErrUserDuplicateEmail = errors.New("邮箱冲突")
-	ErrUserNotFound       = gorm.ErrRecordNotFound
+	ErrUserDuplicate = errors.New("邮箱或手机冲突")
+	ErrUserNotFound  = gorm.ErrRecordNotFound
 )
 
 type User struct {
-	Id       int64  `gorm:"primaryKey,autoIncrement"`
-	Email    string `gorm:"unique"`
+	Id       int64          `gorm:"primaryKey,autoIncrement"`
+	Email    sql.NullString `gorm:"unique"`
 	Password string
-	Ctime    int64
-	Utime    int64
+	// 正确处理 phone 的 NULL 值
+	// 在有唯一索引的字段中，可以有多个 NULL 值，
+	// 但如果字段是空字符串 ("")，则不允许有多个空字符串，数据库会将其视为相同的值，从而违反唯一索引约束
+	Phone sql.NullString `gorm:"unique"`
+	Ctime int64
+	Utime int64
 }
 
 type UserDAO struct {
@@ -41,7 +46,7 @@ func (dao *UserDAO) Insert(ctx context.Context, u User) error {
 	if errors.As(err, &mysqlErr) {
 		const uniqueIndexErrNo uint16 = 1062
 		if mysqlErr.Number == uniqueIndexErrNo {
-			return ErrUserDuplicateEmail
+			return ErrUserDuplicate
 		}
 	}
 	return err
@@ -58,4 +63,13 @@ func (dao *UserDAO) FindById(ctx context.Context, id int64) (User, error) {
 	var u User
 	err := dao.db.WithContext(ctx).Where("id = ?", id).First(&u).Error
 	return u, err
+}
+
+func (dao *UserDAO) FindByPhone(ctx context.Context, phone string) (User, error) {
+	var u User
+	err := dao.db.WithContext(ctx).Where("phone = ?", phone).First(&u).Error
+	if err != nil {
+		return User{}, err
+	}
+	return u, nil
 }

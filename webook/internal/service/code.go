@@ -12,16 +12,21 @@ import (
 
 const codeTplId = "1977183"
 
-var ErrCodeSendTooMany = repository.ErrCodeSendTooMany
+var (
+	ErrCodeSendTooMany   = repository.ErrCodeSendTooMany
+	ErrCodeVerifyTooMany = repository.ErrCodeVerifyTooMany
+	ErrCodeVerifyExpired = repository.ErrCodeVerifyExpired
+)
 
 type CodeService struct {
 	repo   *repository.CodeRepository
 	smsSvc sms.Service
 }
 
-func NewCodeService(repo *repository.CodeRepository) *CodeService {
+func NewCodeService(repo *repository.CodeRepository, smsSvc sms.Service) *CodeService {
 	return &CodeService{
-		repo: repo,
+		repo:   repo,
+		smsSvc: smsSvc,
 	}
 }
 
