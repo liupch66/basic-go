@@ -14,6 +14,10 @@ import (
 	"basic-go/webook/internal/service"
 )
 
+// 确保 UserHandler 实现了 handle 接口
+var _ handler = &UserHandler{}
+var _ handler = (*UserHandler)(nil)
+
 const (
 	biz                  = "login"
 	emailRegexPattern    = "^\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*$"

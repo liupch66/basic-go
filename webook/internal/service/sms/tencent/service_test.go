@@ -33,7 +33,7 @@ func TestService_Send(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	s := NewService("1400859261", "webook公众号", client)
+	svc := NewService("1400859261", "webook公众号", client)
 
 	testCases := []struct {
 		name    string
@@ -60,7 +60,7 @@ func TestService_Send(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		err := s.Send(context.Background(), tc.tplId, tc.params, tc.numbers...)
+		err := svc.Send(context.Background(), tc.tplId, tc.params, tc.numbers...)
 		assert.Equal(t, tc.expectedErr, err)
 	}
 }
