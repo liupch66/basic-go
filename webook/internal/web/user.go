@@ -102,11 +102,12 @@ func (u *UserHandler) Signup(ctx *gin.Context) {
 		// 单独区分邮箱重复错误
 		if errors.Is(err, service.ErrUserDuplicate) {
 			ctx.String(http.StatusOK, "邮箱重复，请换一个邮箱")
+			return
 		}
 		ctx.String(http.StatusOK, "系统错误")
 		return
 	}
-	ctx.String(http.StatusOK, "注册成功！")
+	ctx.String(http.StatusOK, "注册成功")
 }
 
 func (u *UserHandler) Login(ctx *gin.Context) {
