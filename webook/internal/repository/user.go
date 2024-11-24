@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"basic-go/webook/internal/domain"
 	"basic-go/webook/internal/repository/cache"
@@ -40,6 +41,7 @@ func (repo *CachedUserRepository) entityToDomain(ue dao.User) domain.User {
 		Email:    ue.Email.String,
 		Password: ue.Password,
 		Phone:    ue.Phone.String,
+		Ctime:    time.UnixMilli(ue.Ctime),
 	}
 }
 
@@ -55,6 +57,7 @@ func (repo *CachedUserRepository) domainToEntity(u domain.User) dao.User {
 			String: u.Phone,
 			Valid:  u.Phone != "",
 		},
+		Ctime: u.Ctime.UnixMilli(),
 	}
 }
 
@@ -83,10 +86,11 @@ func (repo *CachedUserRepository) FindById(ctx context.Context, id int64) (domai
 			return domain.User{}, err
 		}
 		u = repo.entityToDomain(ue)
-		err = repo.cache.Set(ctx, u)
-		if err != nil {
-			// 打日志
-		}
+		// err = repo.cache.Set(ctx, u)
+		// if err != nil {
+		// 	// 打日志
+		// }
+		_ = repo.cache.Set(ctx, u)
 		return u, nil
 	default:
 		return domain.User{}, err
