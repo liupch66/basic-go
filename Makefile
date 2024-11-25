@@ -9,4 +9,6 @@ mock:
 	@mockgen -package=cachemocks -source=./webook/internal/repository/cache/code.go -destination=./webook/internal/repository/cache/mocks/code.mock.go
 	# 为 redis Cmdable 生成 mock 实现
 	@mockgen -package=redismocks -destination=./webook/internal/repository/cache/redismocks/cmdable.mock.go github.com/redis/go-redis/v9 Cmdable
+	@mockgen -package=smsmocks -source=./webook/internal/service/sms/types.go -destination=./webook/internal/service/sms/mocks/svc.mock.go
+	@mockgen -package=limitmocks -source=./webook/pkg/ratelimit/types.go -destination=./webook/pkg/ratelimit/mocks/limit.mock.go
 	@go mod tidy

@@ -9,6 +9,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
+
+	"basic-go/webook/pkg/ratelimit"
 )
 
 //go:embed slide_window.lua
@@ -57,4 +59,20 @@ func (b *Builder) Build() gin.HandlerFunc {
 			return
 		}
 	}
+}
+
+// =================================================================================================================
+
+type BuilderV1 struct {
+	prefix  string
+	limiter ratelimit.Limiter
+}
+
+func NewBuilderV1(prefix string, limiter ratelimit.Limiter) *BuilderV1 {
+	return &BuilderV1{prefix: prefix, limiter: limiter}
+}
+
+func (b *BuilderV1) Limit(ctx *gin.Context) (bool, error) {
+	key := fmt.Sprintf("%s:%s", b.prefix, ctx.ClientIP())
+	return b.limiter.Limit(ctx, key)
 }
