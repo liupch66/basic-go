@@ -37,11 +37,12 @@ type ServiceV1 struct {
 }
 
 func (s *ServiceV1) Send(ctx context.Context, tplId string, params []string, numbers ...string) error {
-	idx := atomic.AddUint64(&s.idx, 1)
 	length := uint64(len(s.svcs))
-	for i := idx; i < idx+length; i++ {
+	for i := uint64(0); i < length; i++ {
+		idx := atomic.AddUint64(&s.idx, 1)
 		// 注意取余
-		err := s.svcs[i%length].Send(ctx, tplId, params, numbers...)
+		svc := s.svcs[idx%length]
+		err := svc.Send(ctx, tplId, params, numbers...)
 		switch {
 		case err == nil:
 			return nil
