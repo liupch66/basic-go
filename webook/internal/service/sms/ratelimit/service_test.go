@@ -15,7 +15,7 @@ import (
 	limitmocks "basic-go/webook/pkg/ratelimit/mocks"
 )
 
-func TestSmsService_Send(t *testing.T) {
+func TestService_Send(t *testing.T) {
 	testCases := []struct {
 		name string
 
@@ -56,7 +56,7 @@ func TestSmsService_Send(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			smsSvc := NewSmsService(tc.mock(ctrl))
+			smsSvc := NewService(tc.mock(ctrl))
 			err := smsSvc.Send(context.Background(), "test tplId", []string{"test params"}, "test number")
 			assert.Equal(t, tc.expectedErr, err)
 		})
