@@ -13,10 +13,11 @@ import (
 	"basic-go/webook/pkg/ginx/middleware/ratelimit"
 )
 
-func InitWebServer(middlewares []gin.HandlerFunc, userHdl *web.UserHandler) *gin.Engine {
+func InitWebServer(middlewares []gin.HandlerFunc, userHdl *web.UserHandler, oauth2WechatHal *web.OAuth2WechatHandler) *gin.Engine {
 	server := gin.Default()
 	server.Use(middlewares...)
 	userHdl.RegisterRoutes(server)
+	oauth2WechatHal.RegisterRoutes(server)
 	return server
 }
 
@@ -28,7 +29,7 @@ func InitMiddlewares(redisCli redis.Cmdable) []gin.HandlerFunc {
 			ExposeHeaders:    []string{"x-jwt-token"},
 			AllowCredentials: true,
 			AllowOriginFunc: func(origin string) bool {
-				if strings.HasPrefix(origin, "http://localhost") {
+				if strings.HasPrefix(origin, "http://localhost") || strings.HasPrefix(origin, "http://127.0.0.1") {
 					return true
 				}
 				return strings.Contains(origin, "your_company.com")
@@ -39,6 +40,7 @@ func InitMiddlewares(redisCli redis.Cmdable) []gin.HandlerFunc {
 		ratelimit.NewBuilder(redisCli, time.Minute, 100).Build(),
 		// jwt 验证登录态
 		middleware.NewLoginJWTMiddlewareBuilder().IgnorePaths("/hello", "/users/signup",
-			"/users/login", "/users/login_sms/code/send", "/users/login_sms").Build(),
+			"/users/login", "/users/login_sms/code/send", "/users/login_sms", "/oauth2/wechat/authurl",
+			"/oauth2/wechat/callback", "/wechat/callback.do").Build(),
 	}
 }

@@ -20,7 +20,8 @@ type UserService interface {
 	Signup(ctx context.Context, u domain.User) error
 	Login(ctx context.Context, email, password string) (domain.User, error)
 	Profile(ctx context.Context, id int64) (domain.User, error)
-	FindOrCreate(ctx context.Context, phone string) (domain.User, error)
+	FindOrCreateByPhone(ctx context.Context, phone string) (domain.User, error)
+	FindOrCreateByWechat(ctx context.Context, wechatInfo domain.WechatInfo) (domain.User, error)
 }
 
 type userService struct {
@@ -61,7 +62,7 @@ func (svc *userService) Profile(ctx context.Context, id int64) (domain.User, err
 	return svc.repo.FindById(ctx, id)
 }
 
-func (svc *userService) FindOrCreate(ctx context.Context, phone string) (domain.User, error) {
+func (svc *userService) FindOrCreateByPhone(ctx context.Context, phone string) (domain.User, error) {
 	// 快路径，大部分请求都会进来这里
 	u, err := svc.repo.FindByPhone(ctx, phone)
 	if !errors.Is(err, ErrUserNotFound) {
@@ -81,4 +82,16 @@ func (svc *userService) FindOrCreate(ctx context.Context, phone string) (domain.
 	}
 	// 这里会遇到主从延迟的问题
 	return svc.repo.FindByPhone(ctx, phone)
+}
+
+func (svc *userService) FindOrCreateByWechat(ctx context.Context, wechatInfo domain.WechatInfo) (domain.User, error) {
+	u, err := svc.repo.FindByWechat(ctx, wechatInfo.OpenId)
+	if !errors.Is(err, ErrUserNotFound) {
+		return u, err
+	}
+	err = svc.repo.Create(ctx, domain.User{WechatInfo: wechatInfo})
+	if err != nil && !errors.Is(err, ErrUserDuplicate) {
+		return domain.User{}, err
+	}
+	return svc.repo.FindByWechat(ctx, wechatInfo.OpenId)
 }

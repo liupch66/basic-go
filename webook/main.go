@@ -11,7 +11,7 @@ func main() {
 	server.GET("/hello", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "Hello, world!")
 	})
-	err := server.Run(":8080")
+	err := server.Run("127.0.0.1:8080")
 	if err != nil {
 		panic(err)
 	}

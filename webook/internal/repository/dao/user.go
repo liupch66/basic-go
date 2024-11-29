@@ -22,16 +22,24 @@ type User struct {
 	// 正确处理 phone 的 NULL 值
 	// 在有唯一索引的字段中，可以有多个 NULL 值，
 	// 但如果字段是空字符串 ("")，则不允许有多个空字符串，数据库会将其视为相同的值，从而违反唯一索引约束
-	Phone sql.NullString `gorm:"unique"`
-	Ctime int64
-	Utime int64
+	Phone         sql.NullString `gorm:"unique"`
+	WechatOpenId  sql.NullString `gorm:"unique"`
+	WechatUnionId sql.NullString `gorm:"unique"`
+	Ctime         int64
+	Utime         int64
 }
+
+// TableName 自定义表名
+// func (User) TableName() string {
+// 	return "user"
+// }
 
 type UserDAO interface {
 	Insert(ctx context.Context, u User) error
 	FindByEmail(ctx context.Context, email string) (User, error)
 	FindById(ctx context.Context, id int64) (User, error)
 	FindByPhone(ctx context.Context, phone string) (User, error)
+	FindByWechat(ctx context.Context, openId string) (User, error)
 }
 
 type GORMUserDAO struct {
@@ -75,6 +83,15 @@ func (dao *GORMUserDAO) FindById(ctx context.Context, id int64) (User, error) {
 func (dao *GORMUserDAO) FindByPhone(ctx context.Context, phone string) (User, error) {
 	var u User
 	err := dao.db.WithContext(ctx).Where("phone = ?", phone).First(&u).Error
+	if err != nil {
+		return User{}, err
+	}
+	return u, nil
+}
+
+func (dao *GORMUserDAO) FindByWechat(ctx context.Context, openId string) (User, error) {
+	var u User
+	err := dao.db.WithContext(ctx).Where("wechat_open_id = ?", openId).First(&u).Error
 	if err != nil {
 		return User{}, err
 	}

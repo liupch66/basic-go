@@ -3,12 +3,10 @@ package web
 import (
 	"errors"
 	"net/http"
-	"time"
 
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 
 	"basic-go/webook/internal/domain"
 	"basic-go/webook/internal/service"
@@ -31,6 +29,7 @@ type UserHandler struct {
 	phoneRegex     *regexp.Regexp
 	userSvc        service.UserService
 	codeSvc        service.CodeService
+	jwtHandler
 }
 
 func NewUserHandler(userSvc service.UserService, codeSvc service.CodeService) *UserHandler {
@@ -146,30 +145,6 @@ func (u *UserHandler) Login(ctx *gin.Context) {
 	}
 
 	ctx.String(http.StatusOK, "登录成功")
-}
-
-type UserClaims struct {
-	jwt.RegisteredClaims
-	UserId int64
-	// 利用 UserAgent 增强登录安全性
-	UserAgent string
-}
-
-func (u *UserHandler) setJwtToken(ctx *gin.Context, userId int64) error {
-	claims := UserClaims{
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 30)),
-		},
-		UserId:    userId,
-		UserAgent: ctx.Request.UserAgent(),
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
-	tokenStr, err := token.SignedString([]byte("C%B|]SiozBE,S)X>ru,3Uu0+rl1Lj.@O"))
-	if err != nil {
-		return err
-	}
-	ctx.Header("x-jwt-token", tokenStr)
-	return nil
 }
 
 func (u *UserHandler) LoginJWT(ctx *gin.Context) {
@@ -290,7 +265,7 @@ func (u *UserHandler) LoginSms(ctx *gin.Context) {
 		return
 	}
 	// 验证成功设置登录态，要先拿到 userId
-	user, err := u.userSvc.FindOrCreate(ctx, req.Phone)
+	user, err := u.userSvc.FindOrCreateByPhone(ctx, req.Phone)
 	if err != nil {
 		ctx.JSON(http.StatusOK, Result{Code: 5, Msg: "系统错误"})
 		return

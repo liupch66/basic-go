@@ -227,14 +227,14 @@ func TestUserHandler_LoginSms(t *testing.T) {
 			},
 		},
 		{
-			name: "FindOrCreate 出错",
+			name: "FindOrCreateByPhone 出错",
 			mock: func(ctrl *gomock.Controller) (service.UserService, service.CodeService) {
 				userSvc := svcmocks.NewMockUserService(ctrl)
 				codeSvc := svcmocks.NewMockCodeService(ctrl)
 				codeSvc.EXPECT().Verify(gomock.Any(), "login", "15512345678", "123456").
 					Return(true, nil)
 				userSvc.EXPECT().FindOrCreate(gomock.Any(), "15512345678").
-					Return(domain.User{}, errors.New("FindOrCreate 出错"))
+					Return(domain.User{}, errors.New("FindOrCreateByPhone 出错"))
 				return userSvc, codeSvc
 			},
 			reqBody: `{"phone": "15512345678", "code": "123456"}`,
