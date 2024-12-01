@@ -14,6 +14,10 @@ type Service struct {
 	retryMax int
 }
 
+func NewService(svc sms.Service, retryMax int) sms.Service {
+	return &Service{svc: svc, retryMax: retryMax}
+}
+
 func (s *Service) Send(ctx context.Context, tplId string, params []string, numbers ...string) error {
 	var err error
 	for i := 0; i < s.retryMax; i++ {

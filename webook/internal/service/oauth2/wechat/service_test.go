@@ -20,7 +20,7 @@ func Test_service_manual_VerifyCode(t *testing.T) {
 	}
 	svc := NewService(appId, appSecret)
 	// 从微信扫码那里拿一下
-	res, err := svc.VerifyCode(context.Background(), "0238M6000sOXgT1imz2005q17c48M60S", "ApJxBSyDXKDJJFrhsEHmVr")
+	res, err := svc.VerifyCode(context.Background(), "0238M6000sOXgT1imz2005q17c48M60S")
 	require.NoError(t, err)
 	t.Log(res)
 }

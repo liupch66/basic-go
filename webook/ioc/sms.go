@@ -3,6 +3,7 @@ package ioc
 import (
 	"os"
 
+	"github.com/redis/go-redis/v9"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/profile"
 	tencentSMS "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms/v20210111"
@@ -12,7 +13,10 @@ import (
 	"basic-go/webook/internal/service/sms/tencent"
 )
 
-func InitSmsService() sms.Service {
+func InitSmsService(cmd redis.Cmdable) sms.Service {
+	// 装饰器模式,可以一直套
+	// svc := ratelimit.NewService(memory.NewService(), limiter.NewRedisSlideWindowLimiter(cmd, 100, time.Second))
+	// return retryable.NewService(svc, 3)
 	return memory.NewService()
 }
 

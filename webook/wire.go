@@ -11,6 +11,7 @@ import (
 	"basic-go/webook/internal/repository/dao"
 	"basic-go/webook/internal/service"
 	"basic-go/webook/internal/web"
+	ijwt "basic-go/webook/internal/web/jwt"
 	"basic-go/webook/ioc"
 )
 
@@ -21,7 +22,7 @@ func InitWebServer() *gin.Engine {
 		cache.NewUserCache, cache.NewCodeCache,
 		repository.NewUserRepository, repository.NewCodeRepository,
 		service.NewUserService, service.NewCodeService, ioc.InitSmsService, ioc.InitWechatService,
-		web.NewUserHandler, web.NewOAuth2WechatHandler,
+		web.NewUserHandler, ioc.InitWechatHandlerConfig, web.NewOAuth2WechatHandler, ijwt.NewRedisJwtHandler,
 		ioc.InitMiddlewares,
 		ioc.InitWebServer,
 	)
