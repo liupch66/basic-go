@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
 
 	"basic-go/webook/internal/domain"
 	"basic-go/webook/internal/service"
@@ -266,6 +267,8 @@ func (u *UserHandler) LoginSms(ctx *gin.Context) {
 		} else {
 			ctx.JSON(http.StatusOK, Result{Code: 5, Msg: "系统错误"})
 		}
+		// 不要打印手机号码等敏感信息,可以考虑脱敏:155****5678
+		zap.L().Error("校验手机验证码出错", zap.Error(err))
 		return
 	}
 	if !ok {
@@ -306,6 +309,8 @@ func (u *UserHandler) RefreshToken(ctx *gin.Context) {
 	// 刷新 access_token
 	if err = u.SetJwtToken(ctx, rc.Uid, rc.Ssid); err != nil {
 		ctx.AbortWithStatus(http.StatusUnauthorized)
+		// 可以打乱码方便检索,或者补充信息
+		zap.L().Error("asdfds 刷新 access_token 异常", zap.Error(err), zap.String("method", "UserHandler_RefreshToken"))
 		return
 	}
 	ctx.JSON(http.StatusOK, Result{Msg: "刷新成功"})

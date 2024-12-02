@@ -8,6 +8,7 @@ import (
 
 	"basic-go/webook/internal/domain"
 	"basic-go/webook/internal/repository"
+	"basic-go/webook/pkg/logger"
 )
 
 var (
@@ -26,11 +27,13 @@ type UserService interface {
 
 type userService struct {
 	repo repository.UserRepository
+	l    logger.LoggerV1
 }
 
-func NewUserService(repo repository.UserRepository) UserService {
+func NewUserService(repo repository.UserRepository, l logger.LoggerV1) UserService {
 	return &userService{
 		repo: repo,
+		l:    l,
 	}
 }
 
@@ -69,6 +72,14 @@ func (svc *userService) FindOrCreateByPhone(ctx context.Context, phone string) (
 		// 注意 err == nil 也会来这里，返回 u
 		return u, err
 	}
+
+	// 这里 phone 脱敏之后再打出来
+	// zap.L().Info("手机用户未注册,注册新用户", zap.String("phone", phone))
+
+	// svc.logger.Info("手机用户未注册,注册新用户", zap.String("phone", phone))
+
+	svc.l.Info("手机用户未注册,注册新用户", logger.String("phone", phone))
+
 	// 触发降级之后不执行慢路径
 	// if ctx.Value("降级") == "true" {
 	// 	return domain.User{}, errors.New("触发系统降级")

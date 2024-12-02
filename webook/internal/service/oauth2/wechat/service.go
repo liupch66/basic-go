@@ -6,7 +6,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"go.uber.org/zap"
+
 	"basic-go/webook/internal/domain"
+	"basic-go/webook/pkg/logger"
 )
 
 const authURLPattern = "https://open.weixin.qq.com/connect/qrconnect?appid=%s&redirect_uri=%s&response_type=code&scope=snsapi_login&state=%s#wechat_redire"
@@ -23,11 +26,12 @@ type service struct {
 	appId     string
 	appSecret string
 	client    *http.Client
+	l         logger.LoggerV1
 }
 
-func NewService(appId string, appSecret string) Service {
+func NewService(appId string, appSecret string, l logger.LoggerV1) Service {
 	// 这里 client 不是严格的依赖注入
-	return &service{appId: appId, appSecret: appSecret, client: http.DefaultClient}
+	return &service{appId: appId, appSecret: appSecret, client: http.DefaultClient, l: l}
 }
 
 func (s *service) AuthURL(ctx context.Context, state string) (string, error) {
@@ -69,5 +73,6 @@ func (s *service) VerifyCode(ctx context.Context, code string) (domain.WechatInf
 	if res.ErrCode != 0 {
 		return domain.WechatInfo{}, fmt.Errorf("微信返回了错误响应，错误码：%d，错误信息：%s", res.ErrCode, res.ErrMsg)
 	}
+	zap.L().Info("调用微信,拿到用户信息", zap.String("openId", res.OpenId), zap.String("unionId", res.UnionId))
 	return domain.WechatInfo{OpenId: res.OpenId, UnionId: res.UnionId}, err
 }

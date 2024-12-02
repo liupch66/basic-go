@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -10,10 +11,12 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	_ "github.com/spf13/viper/remote"
+	"go.uber.org/zap"
 )
 
 func main() {
-	initViperRemote()
+	initViper()
+	initLogger()
 	fmt.Println(viper.AllKeys())
 	fmt.Println(viper.AllSettings())
 	server := InitWebServer()
@@ -102,4 +105,18 @@ func initViperV3() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func initLogger() {
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		panic(err)
+	}
+	zap.L().Info("before replace")
+	zap.ReplaceGlobals(logger)
+	zap.L().Info("some info")
+	type demo struct {
+		Name string `json:"name"`
+	}
+	zap.L().Info("这是实验参数", zap.Error(errors.New("an error")), zap.Int64("id", 64), zap.Any("一个结构体", demo{Name: "daming"}))
 }

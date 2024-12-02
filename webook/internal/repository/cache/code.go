@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
 )
 
 var (
@@ -67,6 +68,7 @@ func (cache *RedisCodeCache) Verify(ctx context.Context, biz, phone, inputCode s
 	case 0:
 		return true, nil
 	case -1:
+		zap.L().Warn("短信发送太频繁", zap.String("biz", biz))
 		return false, ErrCodeVerifyTooMany
 	case -2:
 		return false, nil

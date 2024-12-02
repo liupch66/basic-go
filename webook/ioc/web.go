@@ -1,6 +1,7 @@
 package ioc
 
 import (
+	"context"
 	"strings"
 	"time"
 
@@ -11,7 +12,9 @@ import (
 	"basic-go/webook/internal/web"
 	ijwt "basic-go/webook/internal/web/jwt"
 	"basic-go/webook/internal/web/middleware"
+	"basic-go/webook/pkg/ginx/middleware/accesslog"
 	"basic-go/webook/pkg/ginx/middleware/ratelimit"
+	"basic-go/webook/pkg/logger"
 )
 
 func InitWebServer(middlewares []gin.HandlerFunc, userHdl *web.UserHandler, oauth2WechatHal *web.OAuth2WechatHandler) *gin.Engine {
@@ -22,8 +25,11 @@ func InitWebServer(middlewares []gin.HandlerFunc, userHdl *web.UserHandler, oaut
 	return server
 }
 
-func InitMiddlewares(redisCli redis.Cmdable, jwtHdl ijwt.Handler) []gin.HandlerFunc {
+func InitMiddlewares(l logger.LoggerV1, redisCli redis.Cmdable, jwtHdl ijwt.Handler) []gin.HandlerFunc {
 	return []gin.HandlerFunc{
+		accesslog.NewMiddlewareBuilder(func(ctx context.Context, al *accesslog.AccessLog) {
+			l.Debug("HTTP", logger.Any("access_log", al))
+		}).AllowReqBody().AllowRespBody().Build(),
 		// cors 跨域资源共享
 		cors.New(cors.Config{
 			AllowHeaders:     []string{"Authorization", "Content-Type"},

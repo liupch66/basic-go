@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	sms "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms/v20210111"
+	"go.uber.org/zap"
 )
 
 type Service struct {
@@ -38,6 +39,7 @@ func (s *Service) Send(ctx context.Context, tplId string, params []string, numbe
 	req.TemplateParamSet = s.toStringPtrSlice(params)
 	req.PhoneNumberSet = s.toStringPtrSlice(numbers)
 	resp, err := s.client.SendSms(req)
+	zap.L().Debug("通过腾讯云发送短信", zap.Any("req", req), zap.Any("resp", resp), zap.Error(err))
 	if err != nil {
 		return err
 	}

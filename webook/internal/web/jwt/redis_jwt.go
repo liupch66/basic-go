@@ -77,11 +77,22 @@ func (h *RedisJwtHandler) ClearToken(ctx *gin.Context) error {
 }
 
 func (h *RedisJwtHandler) CheckSession(ctx *gin.Context, ssid string) error {
-	logout, err := h.cmd.Exists(ctx, fmt.Sprintf("users:ssid:%s", ssid)).Result()
-	if logout > 0 {
+	// redis.Nil，它是一个特殊的错误值，表示 Redis 返回的是 空值，通常出现在对不存在的键执行 GET、HGET 等操作时，而不是 EXISTS。
+	// 对于 Exists 命令，Result() 方法会返回两个值：
+	// 1. 整数值：如果键存在，返回 1。如果键不存在，返回 0。
+	// 2. 错误信息：如果命令执行成功，err 为 nil。如果发生错误（例如网络问题、Redis 服务不可用等），err 会包含错误信息。
+	exists, err := h.cmd.Exists(ctx, fmt.Sprintf("users:ssid:%s", ssid)).Result()
+	if err != nil {
+		// 下面这个不需要
+		// if errors.Is(err, redis.Nil) {
+		// 	return nil
+		// }
+		return err
+	}
+	if exists == 1 {
 		return errors.New("用户已经退出登录")
 	}
-	return err
+	return nil
 }
 
 func (h *RedisJwtHandler) ExtractToken(ctx *gin.Context) string {
