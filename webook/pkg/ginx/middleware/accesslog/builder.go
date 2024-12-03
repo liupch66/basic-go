@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/atomic"
 )
 
 type AccessLog struct {
@@ -19,13 +20,19 @@ type AccessLog struct {
 }
 
 type MiddlewareBuilder struct {
-	allowReqBody  bool
-	allowRespBody bool
+	// 考虑动态开关,配置 viper 监听,小心并发安全,所以这里使用原子操作
+	allowReqBody  *atomic.Bool
+	allowRespBody *atomic.Bool
 	logLevelFunc  func(ctx context.Context, al *AccessLog)
 }
 
 func NewMiddlewareBuilder(fn func(ctx context.Context, al *AccessLog)) *MiddlewareBuilder {
-	return &MiddlewareBuilder{logLevelFunc: fn}
+	return &MiddlewareBuilder{
+		logLevelFunc: fn,
+		// *atomic.Bool 记得初始化,不然是 nil,会 panic; bool 就不用初始化,默认值就是 false
+		allowReqBody:  atomic.NewBool(false),
+		allowRespBody: atomic.NewBool(false),
+	}
 }
 
 func (b *MiddlewareBuilder) Build() gin.HandlerFunc {
@@ -39,7 +46,7 @@ func (b *MiddlewareBuilder) Build() gin.HandlerFunc {
 			Method: ctx.Request.Method,
 			Url:    url,
 		}
-		if b.allowReqBody && ctx.Request.Body != nil {
+		if b.allowReqBody.Load() && ctx.Request.Body != nil {
 			// 这一步已经读到了 ReqBody
 			// body, _ := io.ReadAll(ctx.Request.Body)
 			body, _ := ctx.GetRawData()
@@ -52,7 +59,7 @@ func (b *MiddlewareBuilder) Build() gin.HandlerFunc {
 			ctx.Request.Body = reader
 			al.ReqBody = string(body)
 		}
-		if b.allowRespBody {
+		if b.allowRespBody.Load() {
 			ctx.Writer = &responseWriter{
 				al:             al,
 				ResponseWriter: ctx.Writer,
@@ -66,13 +73,13 @@ func (b *MiddlewareBuilder) Build() gin.HandlerFunc {
 	}
 }
 
-func (b *MiddlewareBuilder) AllowReqBody() *MiddlewareBuilder {
-	b.allowReqBody = true
+func (b *MiddlewareBuilder) AllowReqBody(ok bool) *MiddlewareBuilder {
+	b.allowReqBody.Store(ok)
 	return b
 }
 
-func (b *MiddlewareBuilder) AllowRespBody() *MiddlewareBuilder {
-	b.allowRespBody = true
+func (b *MiddlewareBuilder) AllowRespBody(ok bool) *MiddlewareBuilder {
+	b.allowRespBody.Store(ok)
 	return b
 }
 
