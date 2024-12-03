@@ -12,12 +12,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"basic-go/webook/internal/integration/startup"
 	"basic-go/webook/internal/web"
 	"basic-go/webook/ioc"
 )
 
 func TestUserHandler_SendSmsLoginCode(t *testing.T) {
-	server := InitWebServer()
+	server := startup.InitWebServer()
 	cmd := ioc.InitRedis()
 	testCases := []struct {
 		name string

@@ -9,7 +9,7 @@ func InitRedis() redis.Cmdable {
 	type Config struct {
 		Addr     string `yaml:"addr"`
 		Password string `yaml:"password"`
-		DB       int    `yaml:"DB"`
+		DB       int    `yaml:"db"`
 	}
 	var cfg Config
 	if err := viper.UnmarshalKey("redis", &cfg); err != nil {

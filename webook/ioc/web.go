@@ -19,11 +19,13 @@ import (
 	"basic-go/webook/pkg/logger"
 )
 
-func InitWebServer(middlewares []gin.HandlerFunc, userHdl *web.UserHandler, oauth2WechatHal *web.OAuth2WechatHandler) *gin.Engine {
+func InitWebServer(middlewares []gin.HandlerFunc, userHdl *web.UserHandler,
+	oauth2WechatHal *web.OAuth2WechatHandler, articleHdl *web.ArticleHandler) *gin.Engine {
 	server := gin.Default()
 	server.Use(middlewares...)
 	userHdl.RegisterRoutes(server)
 	oauth2WechatHal.RegisterRoutes(server)
+	articleHdl.RegisterRoutes(server)
 	return server
 }
 
@@ -31,6 +33,7 @@ func InitMiddlewares(l logger.LoggerV1, redisCli redis.Cmdable, jwtHdl ijwt.Hand
 	acBuilder := accesslog.NewMiddlewareBuilder(func(ctx context.Context, al *accesslog.AccessLog) {
 		l.Debug("HTTP", logger.Any("access_log", al))
 	})
+	viper.WatchConfig()
 	viper.OnConfigChange(func(in fsnotify.Event) {
 		// 假设 AccessLog 的 ReqBody 和 ReqBody 的动态开关 key 是 al_req_log 和 al_resp_log
 		acBuilder.AllowReqBody(viper.GetBool("al_req_log"))
