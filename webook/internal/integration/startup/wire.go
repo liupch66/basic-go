@@ -7,6 +7,7 @@ import (
 	"github.com/google/wire"
 
 	"basic-go/webook/internal/repository"
+	"basic-go/webook/internal/repository/article"
 	"basic-go/webook/internal/repository/cache"
 	"basic-go/webook/internal/repository/dao"
 	"basic-go/webook/internal/service"
@@ -46,7 +47,7 @@ func InitWechatSvc() wechat.Service {
 }
 
 func InitArticleHandler() *web.ArticleHandler {
-	wire.Build(thirdPS, dao.NewArticleDAO, repository.NewCachedArticleRepository,
+	wire.Build(thirdPS, dao.NewArticleDAO, article.NewCachedArticleRepository,
 		service.NewArticleService, web.NewArticleHandler)
 	return &web.ArticleHandler{}
 }

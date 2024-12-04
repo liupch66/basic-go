@@ -7,7 +7,11 @@
 package startup
 
 import (
+	"github.com/gin-gonic/gin"
+	"github.com/google/wire"
+
 	"basic-go/webook/internal/repository"
+	"basic-go/webook/internal/repository/article"
 	"basic-go/webook/internal/repository/cache"
 	"basic-go/webook/internal/repository/dao"
 	"basic-go/webook/internal/service"
@@ -15,8 +19,6 @@ import (
 	"basic-go/webook/internal/web"
 	"basic-go/webook/internal/web/jwt"
 	"basic-go/webook/ioc"
-	"github.com/gin-gonic/gin"
-	"github.com/google/wire"
 )
 
 // Injectors from wire.go:
@@ -50,7 +52,7 @@ func InitWechatSvc() wechat.Service {
 func InitArticleHandler() *web.ArticleHandler {
 	gormDB := InitTestDB()
 	articleDAO := dao.NewArticleDAO(gormDB)
-	articleRepository := repository.NewCachedArticleRepository(articleDAO)
+	articleRepository := article.NewCachedArticleRepository(articleDAO)
 	articleService := service.NewArticleService(articleRepository)
 	loggerV1 := InitLog()
 	articleHandler := web.NewArticleHandler(articleService, loggerV1)

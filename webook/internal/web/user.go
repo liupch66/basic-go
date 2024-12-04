@@ -125,7 +125,6 @@ func (u *UserHandler) Login(ctx *gin.Context) {
 	}
 	var req LoginReq
 	if err := ctx.Bind(&req); err != nil {
-		ctx.String(http.StatusOK, "系统错误")
 		return
 	}
 	user, err := u.userSvc.Login(ctx, req.Email, req.Password)
@@ -163,7 +162,6 @@ func (u *UserHandler) LoginJWT(ctx *gin.Context) {
 	}
 	var req LoginReq
 	if err := ctx.Bind(&req); err != nil {
-		ctx.String(http.StatusOK, "系统错误")
 		return
 	}
 	user, err := u.userSvc.Login(ctx, req.Email, req.Password)
@@ -214,7 +212,6 @@ func (u *UserHandler) SendSmsLoginCode(ctx *gin.Context) {
 	}
 	var req Req
 	if err := ctx.Bind(&req); err != nil {
-		ctx.JSON(http.StatusOK, Result{Code: 5, Msg: "系统错误"})
 		return
 	}
 	// 验证手机号码格式是否正确
@@ -246,7 +243,6 @@ func (u *UserHandler) LoginSms(ctx *gin.Context) {
 	}
 	var req Req
 	if err := ctx.Bind(&req); err != nil {
-		ctx.JSON(http.StatusOK, Result{Code: 5, Msg: "系统错误"})
 		return
 	}
 	// 验证手机号码格式是否正确
