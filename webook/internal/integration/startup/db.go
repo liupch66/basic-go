@@ -8,7 +8,6 @@ import (
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 
 	"basic-go/webook/internal/repository/dao"
 )
@@ -34,7 +33,7 @@ func InitTestDB() *gorm.DB {
 			log.Println("等待连接 MySQL", err)
 		}
 		// 一旦数据库连接正常，使用 GORM 打开 MySQL 数据库连接
-		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{Logger: logger.Default.LogMode(logger.Info)})
+		db, err = gorm.Open(mysql.Open(dsn))
 		if err != nil {
 			panic(err)
 		}

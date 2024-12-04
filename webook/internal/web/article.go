@@ -30,12 +30,13 @@ func (h *ArticleHandler) RegisterRoutes(server *gin.Engine) {
 }
 
 func (h *ArticleHandler) Edit(ctx *gin.Context) {
-	type Article struct {
+	type Req struct {
+		Id      int64  `json:"id"`
 		Title   string `json:"title"`
 		Content string `json:"content"`
 	}
-	var art Article
-	if err := ctx.Bind(&art); err != nil {
+	var req Req
+	if err := ctx.Bind(&req); err != nil {
 		ctx.JSON(http.StatusOK, Result{Code: 5, Msg: "系统错误"})
 		h.l.Error("article_bind失败", logger.Error(err))
 		return
@@ -50,10 +51,12 @@ func (h *ArticleHandler) Edit(ctx *gin.Context) {
 	}
 
 	id, err := h.svc.Save(ctx, domain.Article{
-		Title:   art.Title,
-		Content: art.Content,
+		Id:      req.Id,
+		Title:   req.Title,
+		Content: req.Content,
 		Author:  domain.Author{Id: val.UserId},
 	})
+	// 不管什么 error,例如"修改别人的帖子非法",都不会展示出来,统一"系统错误"
 	if err != nil {
 		ctx.JSON(http.StatusOK, Result{Code: 5, Msg: "系统错误"})
 		h.l.Error("保存帖子失败", logger.Error(err))

@@ -44,9 +44,15 @@ func (a *ArticleTestSuite) SetupSuite() {
 	a.db = startup.InitTestDB()
 }
 
-func (a *ArticleTestSuite) TearDownTest() {
-	a.db.Exec("TRUNCATE TABLE articles")
-}
+// 大坑!!!坑爹啊!!!这个只会在 TestArticleHandler_Edit 最后运行一次,而不是每一个 tc 之后运行一次
+// 这是在 ArticleTestSuite 套件的每一个方法(例如这里的 TestExample 和 TestArticleHandler_Edit)之后运行一次,而不是每一个方法中的子测试之后
+// func (a *ArticleTestSuite) TearDownTest() {
+// 	var count int64
+// 	a.db.Model(&dao.Article{}).Count(&count)
+// 	a.T().Log("当前数据库记录数:", count)
+// 	a.T().Log("清理数据库")
+// 	a.db.Exec("TRUNCATE TABLE articles")
+// }
 
 func (a *ArticleTestSuite) TestArticleHandler_Edit() {
 	testCases := []struct {
@@ -68,7 +74,8 @@ func (a *ArticleTestSuite) TestArticleHandler_Edit() {
 				// 无法得知创建和更新准确时间
 				now := time.Now().UnixMilli()
 				assert.True(t, art.Ctime < now)
-				assert.True(t, art.Utime < now)
+				assert.True(t, art.Ctime == art.Utime)
+				// assert.True(t, art.Utime < now)
 				art.Ctime = 0
 				art.Utime = 0
 				assert.Equal(t, dao.Article{
@@ -77,10 +84,80 @@ func (a *ArticleTestSuite) TestArticleHandler_Edit() {
 					Content:  "新建内容",
 					AuthorId: 123,
 				}, art)
+				t.Log("清理数据库")
+				a.db.Exec("TRUNCATE TABLE articles")
 			},
 			art:          Article{Title: "新建帖子", Content: "新建内容"},
 			expectedCode: http.StatusOK,
 			expectedRes:  Result[int64]{Msg: "OK", Data: 1},
+		},
+		{
+			name: "修改已有帖子-->保存成功",
+			before: func() {
+				// 模拟已有帖子
+				a.db.Create(dao.Article{
+					Id:       6,
+					Title:    "新建标题",
+					Content:  "新建内容",
+					AuthorId: 123,
+				})
+			},
+			after: func() {
+				t := a.T()
+				var art dao.Article
+				err := a.db.Where("id=?", 6).First(&art).Error
+				assert.NoError(t, err)
+				end := time.Now().UnixMilli()
+				assert.True(t, art.Ctime < art.Utime)
+				assert.True(t, art.Utime < end)
+				art.Ctime = 0
+				art.Utime = 0
+				assert.Equal(t, dao.Article{
+					Id:       6,
+					Title:    "修改标题",
+					Content:  "修改内容",
+					AuthorId: 123,
+				}, art)
+				t.Log("清理数据库")
+				a.db.Exec("TRUNCATE TABLE articles")
+			},
+			art:          Article{Id: 6, Title: "修改标题", Content: "修改内容"},
+			expectedCode: http.StatusOK,
+			expectedRes:  Result[int64]{Msg: "OK", Data: 6},
+		},
+		{
+			name: "防止修改别人的帖子",
+			before: func() {
+				// 有一篇用户 234 的帖子,接下来用户 123 (user_claims 中的用户信息)想修改
+				a.db.Create(dao.Article{
+					Id:       6,
+					Title:    "新建标题",
+					Content:  "新建内容",
+					AuthorId: 234,
+					Ctime:    8888,
+					Utime:    8888,
+				})
+			},
+			after: func() {
+				t := a.T()
+				var art dao.Article
+				err := a.db.Where("id=?", 6).First(&art).Error
+				assert.NoError(t, err)
+				// 用户 123 肯定不能修改用户 234 的文章,所以 article 的任何信息都不会变,包括 ctime 和 utime
+				assert.Equal(t, dao.Article{
+					Id:       6,
+					Title:    "新建标题",
+					Content:  "新建内容",
+					AuthorId: 234,
+					Ctime:    8888,
+					Utime:    8888,
+				}, art)
+				t.Log("清理数据库")
+				a.db.Exec("TRUNCATE TABLE articles")
+			},
+			art:          Article{Id: 6, Title: "修改标题", Content: "修改内容"},
+			expectedCode: http.StatusOK,
+			expectedRes:  Result[int64]{Code: 5, Msg: "系统错误"},
 		},
 	}
 	for _, tc := range testCases {
@@ -108,6 +185,7 @@ func (a *ArticleTestSuite) TestArticleHandler_Edit() {
 }
 
 type Article struct {
+	Id      int64  `json:"id"`
 	Title   string `json:"title"`
 	Content string `json:"content"`
 }

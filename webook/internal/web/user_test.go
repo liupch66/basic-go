@@ -17,6 +17,8 @@ import (
 	"basic-go/webook/internal/domain"
 	"basic-go/webook/internal/service"
 	svcmocks "basic-go/webook/internal/service/mocks"
+	"basic-go/webook/internal/web/jwt"
+	jwtHdlmocks "basic-go/webook/internal/web/jwt/mock"
 )
 
 // require.NoError(t, err)：如果 err 为 nil，测试继续。如果 err 不为 nil，会立即导致测试失败并停止后续代码执行。
@@ -119,7 +121,7 @@ func TestUserHandler_Signup(t *testing.T) {
 			require.NoError(t, err)
 			resp := httptest.NewRecorder()
 			// 这里用不上 codeSvc, 可以偷懒,不 mock 出来
-			userHdl := NewUserHandler(tc.mock(ctrl), nil)
+			userHdl := NewUserHandler(tc.mock(ctrl), nil, nil)
 			userHdl.RegisterRoutes(server)
 			server.ServeHTTP(resp, req)
 
@@ -134,19 +136,20 @@ func TestUserHandler_LoginSms(t *testing.T) {
 	testCases := []struct {
 		name string
 
-		mock    func(ctrl *gomock.Controller) (service.UserService, service.CodeService)
+		mock    func(ctrl *gomock.Controller) (service.UserService, service.CodeService, jwt.Handler)
 		reqBody string
 
 		expectedResult Result
 	}{
 		{
 			name: "手机验证码登录成功",
-			mock: func(ctrl *gomock.Controller) (service.UserService, service.CodeService) {
+			mock: func(ctrl *gomock.Controller) (service.UserService, service.CodeService, jwt.Handler) {
 				userSvc := svcmocks.NewMockUserService(ctrl)
 				codeSvc := svcmocks.NewMockCodeService(ctrl)
+				jwtHdl := jwtHdlmocks.NewMockHandler(ctrl)
 				codeSvc.EXPECT().Verify(gomock.Any(), "login", "15512345678", "123456").
 					Return(true, nil)
-				userSvc.EXPECT().FindOrCreate(gomock.Any(), "15512345678").
+				userSvc.EXPECT().FindOrCreateByPhone(gomock.Any(), "15512345678").
 					Return(domain.User{
 						Id:       3,
 						Email:    "123@qq.com",
@@ -154,7 +157,8 @@ func TestUserHandler_LoginSms(t *testing.T) {
 						Phone:    "15512345678",
 						Ctime:    now,
 					}, nil)
-				return userSvc, codeSvc
+				jwtHdl.EXPECT().SetLoginToken(gomock.Any(), int64(3)).Return(nil)
+				return userSvc, codeSvc, jwtHdl
 			},
 			reqBody: `{"phone": "15512345678", "code": "123456"}`,
 			expectedResult: Result{
@@ -164,8 +168,8 @@ func TestUserHandler_LoginSms(t *testing.T) {
 		},
 		{
 			name: "bind 失败",
-			mock: func(ctrl *gomock.Controller) (service.UserService, service.CodeService) {
-				return nil, nil
+			mock: func(ctrl *gomock.Controller) (service.UserService, service.CodeService, jwt.Handler) {
+				return nil, nil, nil
 			},
 			reqBody: `{"phone": "15512345678", "code": "123456"`,
 			expectedResult: Result{
@@ -175,8 +179,8 @@ func TestUserHandler_LoginSms(t *testing.T) {
 		},
 		{
 			name: "手机格式不对",
-			mock: func(ctrl *gomock.Controller) (service.UserService, service.CodeService) {
-				return nil, nil
+			mock: func(ctrl *gomock.Controller) (service.UserService, service.CodeService, jwt.Handler) {
+				return nil, nil, nil
 			},
 			reqBody: `{"phone": "155123456789", "code": "123456"}`,
 			expectedResult: Result{
@@ -186,11 +190,11 @@ func TestUserHandler_LoginSms(t *testing.T) {
 		},
 		{
 			name: "手机验证码过期",
-			mock: func(ctrl *gomock.Controller) (service.UserService, service.CodeService) {
+			mock: func(ctrl *gomock.Controller) (service.UserService, service.CodeService, jwt.Handler) {
 				codeSvc := svcmocks.NewMockCodeService(ctrl)
 				codeSvc.EXPECT().Verify(gomock.Any(), "login", "15512345678", "123456").
 					Return(false, service.ErrCodeVerifyExpired)
-				return nil, codeSvc
+				return nil, codeSvc, nil
 			},
 			reqBody: `{"phone": "15512345678", "code": "123456"}`,
 			expectedResult: Result{
@@ -200,11 +204,11 @@ func TestUserHandler_LoginSms(t *testing.T) {
 		},
 		{
 			name: "手机验证码校验发生未知错误",
-			mock: func(ctrl *gomock.Controller) (service.UserService, service.CodeService) {
+			mock: func(ctrl *gomock.Controller) (service.UserService, service.CodeService, jwt.Handler) {
 				codeSvc := svcmocks.NewMockCodeService(ctrl)
 				codeSvc.EXPECT().Verify(gomock.Any(), "login", "15512345678", "123456").
 					Return(false, errors.New("校验发生未知错误"))
-				return nil, codeSvc
+				return nil, codeSvc, nil
 			},
 			reqBody: `{"phone": "15512345678", "code": "123456"}`,
 			expectedResult: Result{
@@ -214,11 +218,11 @@ func TestUserHandler_LoginSms(t *testing.T) {
 		},
 		{
 			name: "手机验证码错误",
-			mock: func(ctrl *gomock.Controller) (service.UserService, service.CodeService) {
+			mock: func(ctrl *gomock.Controller) (service.UserService, service.CodeService, jwt.Handler) {
 				codeSvc := svcmocks.NewMockCodeService(ctrl)
 				codeSvc.EXPECT().Verify(gomock.Any(), "login", "15512345678", "123456").
 					Return(false, nil)
-				return nil, codeSvc
+				return nil, codeSvc, nil
 			},
 			reqBody: `{"phone": "15512345678", "code": "123456"}`,
 			expectedResult: Result{
@@ -228,14 +232,14 @@ func TestUserHandler_LoginSms(t *testing.T) {
 		},
 		{
 			name: "FindOrCreateByPhone 出错",
-			mock: func(ctrl *gomock.Controller) (service.UserService, service.CodeService) {
+			mock: func(ctrl *gomock.Controller) (service.UserService, service.CodeService, jwt.Handler) {
 				userSvc := svcmocks.NewMockUserService(ctrl)
 				codeSvc := svcmocks.NewMockCodeService(ctrl)
 				codeSvc.EXPECT().Verify(gomock.Any(), "login", "15512345678", "123456").
 					Return(true, nil)
-				userSvc.EXPECT().FindOrCreate(gomock.Any(), "15512345678").
+				userSvc.EXPECT().FindOrCreateByPhone(gomock.Any(), "15512345678").
 					Return(domain.User{}, errors.New("FindOrCreateByPhone 出错"))
-				return userSvc, codeSvc
+				return userSvc, codeSvc, nil
 			},
 			reqBody: `{"phone": "15512345678", "code": "123456"}`,
 			expectedResult: Result{

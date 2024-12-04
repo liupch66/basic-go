@@ -1,5 +1,6 @@
 .PHONY: mock
 mock:
+	@mockgen -package=jwtHdlmocks -source=./webook/internal/web/jwt/types.go -destination=./webook/internal/web/jwt/mock/handler.mcok.go
 	@mockgen -package=svcmocks -source=./webook/internal/service/user.go -destination=./webook/internal/service/mocks/user.mock.go
 	@mockgen -package=svcmocks -source=./webook/internal/service/code.go -destination=./webook/internal/service/mocks/code.mock.go
 	@mockgen -package=repomocks -source=./webook/internal/repository/user.go -destination=./webook/internal/repository/mocks/user.mock.go
