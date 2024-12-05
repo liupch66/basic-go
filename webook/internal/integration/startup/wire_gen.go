@@ -14,6 +14,7 @@ import (
 	"basic-go/webook/internal/repository/article"
 	"basic-go/webook/internal/repository/cache"
 	"basic-go/webook/internal/repository/dao"
+	article2 "basic-go/webook/internal/repository/dao/article"
 	"basic-go/webook/internal/service"
 	"basic-go/webook/internal/service/oauth2/wechat"
 	"basic-go/webook/internal/web"
@@ -51,10 +52,10 @@ func InitWechatSvc() wechat.Service {
 
 func InitArticleHandler() *web.ArticleHandler {
 	gormDB := InitTestDB()
-	articleDAO := dao.NewArticleDAO(gormDB)
+	articleDAO := article2.NewGORMArticleDAO(gormDB)
 	articleRepository := article.NewCachedArticleRepository(articleDAO)
-	articleService := service.NewArticleService(articleRepository)
 	loggerV1 := InitLog()
+	articleService := service.NewArticleService(articleRepository, loggerV1)
 	articleHandler := web.NewArticleHandler(articleService, loggerV1)
 	return articleHandler
 }

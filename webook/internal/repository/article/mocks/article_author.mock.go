@@ -44,7 +44,7 @@ func (m *MockArticleAuthorRepository) EXPECT() *MockArticleAuthorRepositoryMockR
 // Create mocks base method.
 func (m *MockArticleAuthorRepository) Create(ctx context.Context, art domain.Article) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, art)
+	ret := m.ctrl.Call(m, "Insert", ctx, art)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -53,7 +53,7 @@ func (m *MockArticleAuthorRepository) Create(ctx context.Context, art domain.Art
 // Create indicates an expected call of Create.
 func (mr *MockArticleAuthorRepositoryMockRecorder) Create(ctx, art any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockArticleAuthorRepository)(nil).Create), ctx, art)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockArticleAuthorRepository)(nil).Create), ctx, art)
 }
 
 // Update mocks base method.

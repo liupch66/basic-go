@@ -10,6 +10,7 @@ import (
 	"basic-go/webook/internal/repository/article"
 	"basic-go/webook/internal/repository/cache"
 	"basic-go/webook/internal/repository/dao"
+	article2 "basic-go/webook/internal/repository/dao/article"
 	"basic-go/webook/internal/service"
 	"basic-go/webook/internal/service/oauth2/wechat"
 	"basic-go/webook/internal/web"
@@ -47,7 +48,7 @@ func InitWechatSvc() wechat.Service {
 }
 
 func InitArticleHandler() *web.ArticleHandler {
-	wire.Build(thirdPS, dao.NewArticleDAO, article.NewCachedArticleRepository,
+	wire.Build(thirdPS, article2.NewGORMArticleDAO, article.NewCachedArticleRepository,
 		service.NewArticleService, web.NewArticleHandler)
 	return &web.ArticleHandler{}
 }

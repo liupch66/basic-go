@@ -13,8 +13,9 @@ import (
 	"github.com/stretchr/testify/suite"
 	"gorm.io/gorm"
 
+	"basic-go/webook/internal/domain"
 	"basic-go/webook/internal/integration/startup"
-	"basic-go/webook/internal/repository/dao"
+	"basic-go/webook/internal/repository/dao/article"
 	"basic-go/webook/internal/web/jwt"
 )
 
@@ -64,11 +65,11 @@ func (a *ArticleTestSuite) TestArticleHandler_Edit() {
 		expectedRes  Result[int64]
 	}{
 		{
-			name:   "新建帖子-->保存成功",
+			name:   "新建帖子-->保存成功(未发表)",
 			before: func() {},
 			after: func() {
 				t := a.T()
-				var art dao.Article
+				var art article.Article
 				err := a.db.Where("id=?", 1).First(&art).Error
 				assert.NoError(t, err)
 				// 无法得知创建和更新准确时间
@@ -78,11 +79,12 @@ func (a *ArticleTestSuite) TestArticleHandler_Edit() {
 				// assert.True(t, art.Utime < now)
 				art.Ctime = 0
 				art.Utime = 0
-				assert.Equal(t, dao.Article{
+				assert.Equal(t, article.Article{
 					Id:       1,
 					Title:    "新建帖子",
 					Content:  "新建内容",
 					AuthorId: 123,
+					Status:   domain.ArticleStatusUnpublished.ToUnit8(),
 				}, art)
 				t.Log("清理数据库")
 				a.db.Exec("TRUNCATE TABLE articles")
@@ -92,10 +94,10 @@ func (a *ArticleTestSuite) TestArticleHandler_Edit() {
 			expectedRes:  Result[int64]{Msg: "OK", Data: 1},
 		},
 		{
-			name: "修改已有帖子-->保存成功",
+			name: "修改已有帖子(未发表)-->保存成功",
 			before: func() {
 				// 模拟已有帖子
-				a.db.Create(dao.Article{
+				a.db.Create(article.Article{
 					Id:       6,
 					Title:    "新建标题",
 					Content:  "新建内容",
@@ -104,7 +106,7 @@ func (a *ArticleTestSuite) TestArticleHandler_Edit() {
 			},
 			after: func() {
 				t := a.T()
-				var art dao.Article
+				var art article.Article
 				err := a.db.Where("id=?", 6).First(&art).Error
 				assert.NoError(t, err)
 				end := time.Now().UnixMilli()
@@ -112,11 +114,47 @@ func (a *ArticleTestSuite) TestArticleHandler_Edit() {
 				assert.True(t, art.Utime < end)
 				art.Ctime = 0
 				art.Utime = 0
-				assert.Equal(t, dao.Article{
+				assert.Equal(t, article.Article{
 					Id:       6,
 					Title:    "修改标题",
 					Content:  "修改内容",
 					AuthorId: 123,
+					Status:   domain.ArticleStatusUnpublished.ToUnit8(),
+				}, art)
+				t.Log("清理数据库")
+				a.db.Exec("TRUNCATE TABLE articles")
+			},
+			art:          Article{Id: 6, Title: "修改标题", Content: "修改内容"},
+			expectedCode: http.StatusOK,
+			expectedRes:  Result[int64]{Msg: "OK", Data: 6},
+		},
+		{
+			name: "修改已有帖子(已发表)-->保存成功",
+			before: func() {
+				a.db.Create(article.Article{
+					Id:       6,
+					Title:    "新建标题",
+					Content:  "新建内容",
+					AuthorId: 123,
+					Status:   domain.ArticleStatusPublished.ToUnit8(),
+				})
+			},
+			after: func() {
+				t := a.T()
+				var art article.Article
+				err := a.db.Where("id=?", 6).First(&art).Error
+				assert.NoError(t, err)
+				end := time.Now().UnixMilli()
+				assert.True(t, art.Ctime < art.Utime)
+				assert.True(t, art.Utime < end)
+				art.Ctime = 0
+				art.Utime = 0
+				assert.Equal(t, article.Article{
+					Id:       6,
+					Title:    "修改标题",
+					Content:  "修改内容",
+					AuthorId: 123,
+					Status:   domain.ArticleStatusUnpublished.ToUnit8(),
 				}, art)
 				t.Log("清理数据库")
 				a.db.Exec("TRUNCATE TABLE articles")
@@ -129,26 +167,29 @@ func (a *ArticleTestSuite) TestArticleHandler_Edit() {
 			name: "防止修改别人的帖子",
 			before: func() {
 				// 有一篇用户 234 的帖子,接下来用户 123 (user_claims 中的用户信息)想修改
-				a.db.Create(dao.Article{
+				a.db.Create(article.Article{
 					Id:       6,
 					Title:    "新建标题",
 					Content:  "新建内容",
 					AuthorId: 234,
-					Ctime:    8888,
-					Utime:    8888,
+					// 这里随便给个状态,验证没改变就行
+					Status: domain.ArticleStatusPublished.ToUnit8(),
+					Ctime:  8888,
+					Utime:  8888,
 				})
 			},
 			after: func() {
 				t := a.T()
-				var art dao.Article
+				var art article.Article
 				err := a.db.Where("id=?", 6).First(&art).Error
 				assert.NoError(t, err)
 				// 用户 123 肯定不能修改用户 234 的文章,所以 article 的任何信息都不会变,包括 ctime 和 utime
-				assert.Equal(t, dao.Article{
+				assert.Equal(t, article.Article{
 					Id:       6,
 					Title:    "新建标题",
 					Content:  "新建内容",
 					AuthorId: 234,
+					Status:   domain.ArticleStatusPublished.ToUnit8(),
 					Ctime:    8888,
 					Utime:    8888,
 				}, art)

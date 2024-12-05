@@ -101,6 +101,7 @@ func Test_articleService_Publish(t *testing.T) {
 			expectedId:  2,
 		},
 		{
+			// 可以简化:不记录重试次数,直接使用 Times(3), 不管多少次就使用 AnyTimes
 			name: "修改已有文章-->保存到制作库成功-->发表(保存到线上库)第一次失败-->重试三次(上限)全部失败",
 			mock: func(ctrl *gomock.Controller) (article.ArticleAuthorRepository, article.ArticleReaderRepository, logger.LoggerV1) {
 				author := artRepomocks.NewMockArticleAuthorRepository(ctrl)

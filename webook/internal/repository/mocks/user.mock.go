@@ -44,7 +44,7 @@ func (m *MockUserRepository) EXPECT() *MockUserRepositoryMockRecorder {
 // Create mocks base method.
 func (m *MockUserRepository) Create(ctx context.Context, u domain.User) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, u)
+	ret := m.ctrl.Call(m, "Insert", ctx, u)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -52,7 +52,7 @@ func (m *MockUserRepository) Create(ctx context.Context, u domain.User) error {
 // Create indicates an expected call of Create.
 func (mr *MockUserRepositoryMockRecorder) Create(ctx, u any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUserRepository)(nil).Create), ctx, u)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockUserRepository)(nil).Create), ctx, u)
 }
 
 // FindByEmail mocks base method.
