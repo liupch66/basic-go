@@ -13,6 +13,7 @@ type ArticleService interface {
 	Save(ctx context.Context, art domain.Article) (int64, error)
 	Publish(ctx context.Context, art domain.Article) (int64, error)
 	PublishV1(ctx context.Context, art domain.Article) (int64, error)
+	Withdraw(ctx context.Context, art domain.Article) error
 }
 
 type articleService struct {
@@ -45,20 +46,8 @@ func (svc *articleService) Save(ctx context.Context, art domain.Article) (int64,
 	return svc.repo.Create(ctx, art)
 }
 
-// 可以防止修改别人的帖子,但是性能较差,每次都要查询一次数据库
-// 改进:在数据库更新帖子时的更新条件: where id = ? ----> where id = ? and author_id = ?
-// func (svc *articleService) update(ctx context.Context, art domain.Article) error {
-// 	res, err := svc.repo.FindById(ctx, art.Id)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	if res.Author.Id != art.Author.Id {
-// 		return errors.New("更改别人的帖子")
-// 	}
-// 	return svc.repo.Update(ctx, art)
-// }
-
 func (svc *articleService) Publish(ctx context.Context, art domain.Article) (int64, error) {
+	art.Status = domain.ArticleStatusPublished
 	return svc.repo.Sync(ctx, art)
 }
 
@@ -102,4 +91,9 @@ func (svc *articleService) PublishV1(ctx context.Context, art domain.Article) (i
 	// 走 Canal
 	// 打 MQ
 	return 0, err
+}
+
+func (svc *articleService) Withdraw(ctx context.Context, art domain.Article) error {
+	// 也可以设置 art.Status = domain.ArticleStatusPrivate,再接着往下传 art
+	return svc.repo.SyncStatus(ctx, art.Id, art.Author.Id, domain.ArticleStatusPrivate)
 }

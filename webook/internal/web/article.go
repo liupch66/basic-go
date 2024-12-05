@@ -27,6 +27,7 @@ func (h *ArticleHandler) RegisterRoutes(server *gin.Engine) {
 	{
 		ag.POST("/edit", h.Edit)
 		ag.POST("/publish", h.Publish)
+		ag.POST("/withdraw", h.Withdraw)
 	}
 }
 
@@ -92,4 +93,27 @@ func (h *ArticleHandler) Publish(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, Result{Msg: "OK", Data: id})
+}
+
+func (h *ArticleHandler) Withdraw(ctx *gin.Context) {
+	var req ArticleReq
+	if err := ctx.Bind(&req); err != nil {
+		h.l.Error("article_withdraw bind 失败", logger.Error(err))
+		return
+	}
+	val, _ := ctx.Get("user_claims")
+	uc, ok := val.(jwt.UserClaims)
+	if !ok {
+		h.l.Error("没有用户的 session 信息")
+		ctx.JSON(http.StatusOK, Result{Code: 5, Msg: "系统错误"})
+		return
+	}
+	err := h.svc.Withdraw(ctx, req.toDomain(uc.UserId))
+	if err != nil {
+		h.l.Error("用户设置文章仅自己可见失败", logger.Error(err),
+			logger.Int64("article_id", req.Id), logger.Int64("user_id", uc.UserId))
+		ctx.JSON(http.StatusOK, Result{Code: 5, Msg: "系统错误"})
+		return
+	}
+	ctx.JSON(http.StatusOK, Result{Msg: "用户设置文章仅自己可见成功"})
 }

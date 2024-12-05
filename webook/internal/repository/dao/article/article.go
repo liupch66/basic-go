@@ -30,6 +30,7 @@ type ArticleDAO interface {
 	Upsert(ctx context.Context, art PublishedArticle) error
 	// Sync 同步制作表和线上表
 	Sync(ctx context.Context, art Article) (int64, error)
+	SyncStatus(ctx context.Context, id int64, authorId int64, status uint8) error
 }
 
 type GORMArticleDAO struct {
@@ -71,29 +72,7 @@ func (dao *GORMArticleDAO) Upsert(ctx context.Context, art PublishedArticle) err
 	now := time.Now().UnixMilli()
 	art.Ctime = now
 	art.Utime = now
-	// 如果冲突发生，会根据 OnConflict 子句中的规则更新已存在的记录，而不是插入新记录
-	// 这比单独处理插入失败后的回滚逻辑更加高效
 	err := dao.db.WithContext(ctx).Clauses(clause.OnConflict{
-		/* SQL 2003 标准 ~
-		INSERT INTO published_articles (id, title, content, author_id, status, ctime, utime)VALUES (...)
-		ON CONFLICT (id)
-		DO UPDATE SET title=x, content=x, status=x, utime=x WHERE XXX / DO NOTHING
-
-		MySQL 最终语句:
-		INSERT INTO published_articles (...) VALUES (...)
-		ON DUPLICATE KEY
-		UPDATE title=x...
-		*/
-
-		// 指定哪些列应该用于冲突检查, 默认情况检查主键冲突和唯一索引冲突
-		// Columns: nil,
-		// 当发生冲突时，并且额外符合的附加条件
-		// Where: clause.Where{},
-		// 指定冲突时的约束条件名称
-		// OnConstraint: "",
-		// 在冲突时是否执行 "什么都不做" 的操作
-		// DoNothing: false,
-		// 指定冲突时需要更新的列及其值, MySQL 只需要关心这里
 		DoUpdates: clause.Assignments(map[string]any{
 			"title":   art.Title,
 			"content": art.Content,
@@ -119,8 +98,29 @@ func (dao *GORMArticleDAO) Sync(ctx context.Context, art Article) (int64, error)
 		if err != nil {
 			return err
 		}
-		art.Id = id
 		return txDAO.Upsert(ctx, PublishedArticle{Article: art})
 	})
 	return id, err
+}
+
+func (dao *GORMArticleDAO) SyncStatus(ctx context.Context, id int64, authorId int64, status uint8) error {
+	// 小优化,尽量减少事务时间
+	now := time.Now().UnixMilli()
+	return dao.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		res := tx.Model(&Article{}).Where("id=? AND author_id=?", id, authorId).Updates(map[string]any{
+			"status": status,
+			"utime":  now,
+		})
+		if res.Error != nil {
+			return res.Error
+		}
+		if res.RowsAffected != 1 {
+			return fmt.Errorf("有人非法设置别人的文章为仅自己可见, article_id: %d, author_id: %s", id, authorId)
+		}
+		// 上面设置了 id 和 author_id 的双重验证,这里可以忽略 author_id
+		return tx.Model(&PublishedArticle{}).Where("id=?", id).Updates(map[string]any{
+			"status": status,
+			"utime":  now,
+		}).Error
+	})
 }

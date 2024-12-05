@@ -14,6 +14,7 @@ type ArticleRepository interface {
 	Update(ctx context.Context, art domain.Article) error
 	// Sync 存储并同步制作库和线上库数据
 	Sync(ctx context.Context, art domain.Article) (int64, error)
+	SyncStatus(ctx context.Context, id int64, authorId int64, status domain.ArticleStatus) error
 }
 
 type CachedArticleRepository struct {
@@ -117,4 +118,8 @@ func (repo *CachedArticleRepository) SyncV2(ctx context.Context, art domain.Arti
 	}
 	tx.Commit()
 	return id, nil
+}
+
+func (repo *CachedArticleRepository) SyncStatus(ctx context.Context, id int64, authorId int64, status domain.ArticleStatus) error {
+	return repo.dao.SyncStatus(ctx, id, authorId, status.ToUnit8())
 }
