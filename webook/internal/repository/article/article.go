@@ -57,7 +57,7 @@ func (repo *CachedArticleRepository) Create(ctx context.Context, art domain.Arti
 }
 
 func (repo *CachedArticleRepository) Update(ctx context.Context, art domain.Article) error {
-	return repo.dao.Update(ctx, repo.domainToEntity(art))
+	return repo.dao.UpdateById(ctx, repo.domainToEntity(art))
 }
 
 func (repo *CachedArticleRepository) Sync(ctx context.Context, art domain.Article) (int64, error) {
@@ -112,7 +112,7 @@ func (repo *CachedArticleRepository) SyncV2(ctx context.Context, art domain.Arti
 		return 0, err
 	}
 	a.Id = id
-	err = readerDAO.UpsertV2(ctx, dao.PublishedArticle{Article: a})
+	err = readerDAO.UpsertV2(ctx, dao.PublishedArticle(a))
 	if err != nil {
 		return 0, err
 	}

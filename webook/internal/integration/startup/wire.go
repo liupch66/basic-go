@@ -47,8 +47,8 @@ func InitWechatSvc() wechat.Service {
 	return wechat.NewService("", "", nil)
 }
 
-func InitArticleHandler() *web.ArticleHandler {
-	wire.Build(thirdPS, article2.NewGORMArticleDAO, article.NewCachedArticleRepository,
+func InitArticleHandler(dao article2.ArticleDAO) *web.ArticleHandler {
+	wire.Build(thirdPS, article.NewCachedArticleRepository,
 		service.NewArticleService, web.NewArticleHandler)
 	return &web.ArticleHandler{}
 }
@@ -56,6 +56,7 @@ func InitArticleHandler() *web.ArticleHandler {
 func InitWebServer() *gin.Engine {
 	wire.Build(
 		thirdPS,
+		article2.NewGORMArticleDAO,
 		InitUserSvc, InitCodeSvc, InitWechatSvc,
 		jwt.NewRedisJwtHandler, ioc.InitWechatHandlerConfig,
 		ioc.InitMiddlewares,

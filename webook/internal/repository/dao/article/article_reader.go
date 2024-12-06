@@ -11,11 +11,6 @@ type ReaderDAO interface {
 	UpsertV2(ctx context.Context, art PublishedArticle) error
 }
 
-// PublishedArticle 线上库,这里是组合;也可以考虑重新定义一张表
-type PublishedArticle struct {
-	Article
-}
-
 type GORMReaderDAO struct {
 	db *gorm.DB
 }

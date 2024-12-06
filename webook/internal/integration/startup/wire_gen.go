@@ -7,19 +7,18 @@
 package startup
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/google/wire"
-
 	"basic-go/webook/internal/repository"
-	"basic-go/webook/internal/repository/article"
+	article2 "basic-go/webook/internal/repository/article"
 	"basic-go/webook/internal/repository/cache"
 	"basic-go/webook/internal/repository/dao"
-	article2 "basic-go/webook/internal/repository/dao/article"
+	"basic-go/webook/internal/repository/dao/article"
 	"basic-go/webook/internal/service"
 	"basic-go/webook/internal/service/oauth2/wechat"
 	"basic-go/webook/internal/web"
 	"basic-go/webook/internal/web/jwt"
 	"basic-go/webook/ioc"
+	"github.com/gin-gonic/gin"
+	"github.com/google/wire"
 )
 
 // Injectors from wire.go:
@@ -50,10 +49,8 @@ func InitWechatSvc() wechat.Service {
 	return wechatService
 }
 
-func InitArticleHandler() *web.ArticleHandler {
-	gormDB := InitTestDB()
-	articleDAO := article2.NewGORMArticleDAO(gormDB)
-	articleRepository := article.NewCachedArticleRepository(articleDAO)
+func InitArticleHandler(dao2 article.ArticleDAO) *web.ArticleHandler {
+	articleRepository := article2.NewCachedArticleRepository(dao2)
 	loggerV1 := InitLog()
 	articleService := service.NewArticleService(articleRepository, loggerV1)
 	articleHandler := web.NewArticleHandler(articleService, loggerV1)
@@ -71,7 +68,9 @@ func InitWebServer() *gin.Engine {
 	wechatService := InitWechatSvc()
 	wechatHandlerConfig := ioc.InitWechatHandlerConfig()
 	oAuth2WechatHandler := web.NewOAuth2WechatHandler(wechatService, userService, wechatHandlerConfig, handler)
-	articleHandler := InitArticleHandler()
+	gormDB := InitTestDB()
+	articleDAO := article.NewGORMArticleDAO(gormDB)
+	articleHandler := InitArticleHandler(articleDAO)
 	engine := ioc.InitWebServer(v, userHandler, oAuth2WechatHandler, articleHandler)
 	return engine
 }

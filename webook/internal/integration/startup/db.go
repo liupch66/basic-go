@@ -3,9 +3,13 @@ package startup
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"time"
 
+	"go.mongodb.org/mongo-driver/v2/event"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
@@ -44,4 +48,23 @@ func InitTestDB() *gorm.DB {
 		}
 	}
 	return db
+}
+
+var mongoDB *mongo.Database
+
+func InitMongoDB() *mongo.Database {
+	if mongoDB == nil {
+		monitor := &event.CommandMonitor{
+			Started: func(ctx context.Context, startedEvent *event.CommandStartedEvent) {
+				fmt.Println(startedEvent.Command)
+			},
+		}
+		opts := options.Client().ApplyURI("mongodb://root:example@localhost:27017/").SetMonitor(monitor)
+		client, err := mongo.Connect(opts)
+		if err != nil {
+			panic(err)
+		}
+		mongoDB = client.Database("webook")
+	}
+	return mongoDB
 }
