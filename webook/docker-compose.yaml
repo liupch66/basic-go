@@ -1,4 +1,4 @@
-#version: '3.0'
+version: '3.0'
 services:
   mysql8:
     image: "mysql:8.0.29"
@@ -11,14 +11,42 @@ services:
     ports:
       - "3306:3306"
   redis:
-    image: 'bitnami/redis:latest'
+    image: 'bitnami/redis:7.2'
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
     ports:
       - '6379:6379'
   etcd:
-    image: "bitnami/etcd:latest"
+    image: "bitnami/etcd:3.5.9"
     environment:
       - ALLOW_NONE_AUTHENTICATION=yes
     ports:
-      - "22379:2379"
+      - "12379:2379"
+  mongodb:
+    image: mongo:6.0
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    ports:
+      - "27017:27017"
+  mongo-express:
+    image: mongo-express:1.0.2
+    restart: always
+#    depends_on:
+#      - mongodb
+    ports:
+#     - 访问 8081
+      - "8081:8081"
+    environment:
+      # 主要是保护 Mongo Express 的 UI，通过基本认证确保只有授权用户能够访问
+      # 这就是默认值,不写也可以,docker 启动时日志会红字显示:
+      # basicAuth credentials are "admin:pass", it is recommended you change this in your config.js!
+#      ME_CONFIG_BASICAUTH_USERNAME: admin
+#      ME_CONFIG_BASICAUTH_PASSWORD: pass
+      # Mongo Express 用来连接 MongoDB 数据库的凭据，确保它能正确执行对数据库的操作（如查看和修改数据）
+#      ME_CONFIG_MONGODB_ENABLE_ADMIN: true
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+#     这个url就是根据 mongo 里面的配置搞出来的
+      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongodb:27017/
