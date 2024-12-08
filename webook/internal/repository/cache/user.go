@@ -16,6 +16,7 @@ var ErrKeyNotExist = redis.Nil
 type UserCache interface {
 	Set(ctx context.Context, u domain.User) error
 	Get(ctx context.Context, id int64) (domain.User, error)
+	Delete(ctx context.Context, id int64) error
 }
 
 type RedisUserCache struct {
@@ -50,4 +51,8 @@ func (cache *RedisUserCache) Get(ctx context.Context, id int64) (domain.User, er
 	var u domain.User
 	err = json.Unmarshal(val, &u)
 	return u, err
+}
+
+func (cache *RedisUserCache) Delete(ctx context.Context, id int64) error {
+	return cache.cmd.Del(ctx, cache.key(id)).Err()
 }

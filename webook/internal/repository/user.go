@@ -19,6 +19,7 @@ var (
 type UserRepository interface {
 	Create(ctx context.Context, u domain.User) error
 	FindByEmail(ctx context.Context, email string) (domain.User, error)
+	Update(ctx context.Context, u domain.User) error
 	FindById(ctx context.Context, id int64) (domain.User, error)
 	FindByPhone(ctx context.Context, phone string) (domain.User, error)
 	FindByWechat(ctx context.Context, openId string) (domain.User, error)
@@ -84,6 +85,14 @@ func (repo *CachedUserRepository) FindByEmail(ctx context.Context, email string)
 		return domain.User{}, err
 	}
 	return repo.entityToDomain(ue), nil
+}
+
+func (repo *CachedUserRepository) Update(ctx context.Context, u domain.User) error {
+	err := repo.dao.UpdateNonZeroFields(ctx, repo.domainToEntity(u))
+	if err != nil {
+		return err
+	}
+	return repo.cache.Delete(ctx, u.Id)
 }
 
 func (repo *CachedUserRepository) FindById(ctx context.Context, id int64) (domain.User, error) {

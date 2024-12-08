@@ -37,6 +37,7 @@ type User struct {
 type UserDAO interface {
 	Insert(ctx context.Context, u User) error
 	FindByEmail(ctx context.Context, email string) (User, error)
+	UpdateNonZeroFields(ctx context.Context, u User) error
 	FindById(ctx context.Context, id int64) (User, error)
 	FindByPhone(ctx context.Context, phone string) (User, error)
 	FindByWechat(ctx context.Context, openId string) (User, error)
@@ -72,6 +73,15 @@ func (dao *GORMUserDAO) FindByEmail(ctx context.Context, email string) (User, er
 	err := dao.db.WithContext(ctx).Where("email = ?", email).First(&u).Error
 	// err := dao.db.WithContext(ctx).First(&u, "email = ?", email).Error
 	return u, err
+}
+
+func (dao *GORMUserDAO) UpdateNonZeroFields(ctx context.Context, u User) error {
+	// 这种写法是很不清晰的，因为它依赖了 gorm 的两个默认语义
+	// 会使用 ID 来作为 WHERE 条件
+	// 会使用非零值来更新
+	// 另外一种做法是显式指定只更新必要的字段，
+	// 那么这意味着 DAO 和 service 中非敏感字段语义耦合了
+	return dao.db.WithContext(ctx).Updates(&u).Error
 }
 
 func (dao *GORMUserDAO) FindById(ctx context.Context, id int64) (User, error) {
