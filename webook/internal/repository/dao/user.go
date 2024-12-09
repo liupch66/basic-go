@@ -12,7 +12,7 @@ import (
 
 var (
 	ErrUserDuplicate = errors.New("邮箱或手机冲突")
-	ErrUserNotFound  = gorm.ErrRecordNotFound
+	ErrDataNotFound  = gorm.ErrRecordNotFound
 )
 
 type User struct {

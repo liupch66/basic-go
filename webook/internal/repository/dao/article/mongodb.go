@@ -113,3 +113,13 @@ func (m *MongoDBDAO) SyncStatus(ctx context.Context, id int64, authorId int64, s
 	// TODO implement me
 	panic("implement me")
 }
+
+func (m *MongoDBDAO) GetByAuthor(ctx context.Context, uid int64, offset int, limit int) ([]Article, error) {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (m *MongoDBDAO) GetById(ctx context.Context, id int64) (Article, error) {
+	// TODO implement me
+	panic("implement me")
+}

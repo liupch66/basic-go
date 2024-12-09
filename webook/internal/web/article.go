@@ -8,6 +8,7 @@ import (
 
 	"github.com/ecodeclub/ekit/slice"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/sync/errgroup"
 
 	"basic-go/webook/internal/domain"
 	"basic-go/webook/internal/service"
@@ -19,12 +20,14 @@ import (
 var _ handler = (*ArticleHandler)(nil)
 
 type ArticleHandler struct {
-	svc service.ArticleService
-	l   logger.LoggerV1
+	svc      service.ArticleService
+	interSvc service.InteractService
+	l        logger.LoggerV1
+	biz      string
 }
 
-func NewArticleHandler(svc service.ArticleService, l logger.LoggerV1) *ArticleHandler {
-	return &ArticleHandler{svc: svc, l: l}
+func NewArticleHandler(svc service.ArticleService, interSvc service.InteractService, l logger.LoggerV1) *ArticleHandler {
+	return &ArticleHandler{svc: svc, interSvc: interSvc, l: l, biz: "article"}
 }
 
 func (h *ArticleHandler) RegisterRoutes(server *gin.Engine) {
@@ -40,6 +43,9 @@ func (h *ArticleHandler) RegisterRoutes(server *gin.Engine) {
 	pg := server.Group("/pub")
 	{
 		pg.GET("/:id", ginx.WrapClaims[jwt.UserClaims](h.PubDetail))
+		// 点赞和取消点赞都是这个
+		pg.POST("/like", ginx.WrapReqAndClaims[LikeReq](h.Like))
+		pg.POST("/collect", ginx.WrapReqAndClaims[CollectReq](h.Collect))
 	}
 }
 
@@ -188,18 +194,87 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context, uc jwt.UserClaims) (Result,
 	if err != nil {
 		return Result{Code: 4, Msg: "参数错误"}, fmt.Errorf("读者查询文章的 ID 错误，ID：%s， error：%w", idStr, err)
 	}
-	art, err := h.svc.GetPublishedById(ctx, id)
+
+	// 接下来查询文章详情和阅读点赞收藏详情可以并行，也就是开两个 goroutine，但是最终的 article_vo 要等这两个执行完
+	// 所以可以用 WaitGroup，但是要各自处理错误，可以改进成 ErrGroup
+	var (
+		eg    errgroup.Group
+		art   domain.Article
+		inter domain.Interact
+	)
+
+	// goroutine 里面最好不要复用外面的 error，防止不清楚最后的 error 到底是哪个
+	eg.Go(func() error {
+		var er error
+		art, er = h.svc.GetPublishedById(ctx, id)
+		return er
+	})
+
+	eg.Go(func() error {
+		var er error
+		inter, er = h.interSvc.Get(ctx, h.biz, id, uc.UserId)
+		// 可以容忍错误的写法
+		// if er != nil {
+		// 	h.l.Error("获取阅读点赞收藏详情失败", logger.Int64("article_id", id),
+		// 		logger.Int64("user_id", uc.UserId), logger.Error(er))
+		// }
+		// return nil
+
+		// 不容忍错误的写法
+		return er
+	})
+
+	err = eg.Wait()
 	if err != nil {
-		return Result{Code: 5, Msg: "系统错误"}, fmt.Errorf("读者获取文章失败：%w", err)
+		return Result{Code: 5, Msg: "系统错误"}, fmt.Errorf("获取文章信息失败 %w", err)
 	}
+
+	// 增加阅读计数
+	// 直接异步操作，在确定我们获取到了数据之后再来操作
+	go func() {
+		er := h.interSvc.IncrReadCnt(ctx, h.biz, id)
+		if er != nil {
+			h.l.Error("增加阅读计数失败", logger.Error(er), logger.Int64("article_id", art.Id))
+		}
+	}()
 	return Result{Data: ArticleVO{
 		Id:    id,
 		Title: art.Title,
 		// Abstract: art.Abstract(),
-		Content: art.Content,
-		Status:  art.Status.ToUnit8(),
-		Author:  art.Author.Name,
-		Ctime:   art.Ctime.Format(time.DateTime),
-		Utime:   art.Utime.Format(time.DateTime),
+		Content:    art.Content,
+		Status:     art.Status.ToUnit8(),
+		Author:     art.Author.Name,
+		Liked:      inter.Liked,
+		Collected:  inter.Collected,
+		ReadCnt:    inter.ReadCnt,
+		LikeCnt:    inter.LikeCnt,
+		CollectCnt: inter.CollectCnt,
+		Ctime:      art.Ctime.Format(time.DateTime),
+		Utime:      art.Utime.Format(time.DateTime),
 	}}, nil
+}
+
+func (h *ArticleHandler) Like(ctx *gin.Context, req LikeReq, uc jwt.UserClaims) (Result, error) {
+	var err error
+	if req.Like {
+		err = h.interSvc.Like(ctx, h.biz, req.Id, uc.UserId)
+	} else {
+		err = h.interSvc.CancelLike(ctx, h.biz, req.Id, uc.UserId)
+	}
+	if err != nil {
+		h.l.Error("读者点赞或取消点赞失败", logger.Int64("article_id", req.Id),
+			logger.Int64("user_id", uc.UserId), logger.Error(err))
+		return Result{Code: 5, Msg: "系统错误"}, err
+	}
+	return Result{Msg: "OK"}, nil
+}
+
+func (h *ArticleHandler) Collect(ctx *gin.Context, req CollectReq, uc jwt.UserClaims) (Result, error) {
+	err := h.interSvc.Collect(ctx, h.biz, req.Id, req.Cid, uc.UserId)
+	if err != nil {
+		h.l.Error("读者收藏失败", logger.Int64("article_id", req.Id),
+			logger.Int64("user_id", uc.UserId), logger.Error(err))
+		return Result{Code: 5, Msg: "系统错误"}, err
+	}
+	return Result{Msg: "OK"}, nil
 }
