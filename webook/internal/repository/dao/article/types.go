@@ -16,4 +16,6 @@ type ArticleDAO interface {
 	// Sync 同步制作表和线上表
 	Sync(ctx context.Context, art Article) (int64, error)
 	SyncStatus(ctx context.Context, id int64, authorId int64, status uint8) error
+	GetByAuthor(ctx context.Context, uid int64, offset int, limit int) ([]Article, error)
+	GetById(ctx context.Context, id int64) (Article, error)
 }

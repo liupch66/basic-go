@@ -42,6 +42,7 @@ func (repo *CachedUserRepository) entityToDomain(ue dao.User) domain.User {
 		Id:       ue.Id,
 		Email:    ue.Email.String,
 		Password: ue.Password,
+		Nickname: ue.Nickname.String,
 		Phone:    ue.Phone.String,
 		WechatInfo: domain.WechatInfo{
 			OpenId:  ue.WechatOpenId.String,
@@ -59,6 +60,10 @@ func (repo *CachedUserRepository) domainToEntity(u domain.User) dao.User {
 			Valid:  u.Email != "",
 		},
 		Password: u.Password,
+		Nickname: sql.NullString{
+			String: u.Nickname,
+			Valid:  u.Nickname != "",
+		},
 		Phone: sql.NullString{
 			String: u.Phone,
 			Valid:  u.Phone != "",

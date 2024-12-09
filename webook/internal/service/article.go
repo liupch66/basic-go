@@ -14,6 +14,9 @@ type ArticleService interface {
 	Publish(ctx context.Context, art domain.Article) (int64, error)
 	PublishV1(ctx context.Context, art domain.Article) (int64, error)
 	Withdraw(ctx context.Context, art domain.Article) error
+	List(ctx context.Context, uid int64, offset int, limit int) ([]domain.Article, error)
+	GetById(ctx context.Context, id int64) (domain.Article, error)
+	GetPublishedById(ctx context.Context, id int64) (domain.Article, error)
 }
 
 type articleService struct {
@@ -96,4 +99,16 @@ func (svc *articleService) PublishV1(ctx context.Context, art domain.Article) (i
 func (svc *articleService) Withdraw(ctx context.Context, art domain.Article) error {
 	// 也可以设置 art.Status = domain.ArticleStatusPrivate,再接着往下传 art
 	return svc.repo.SyncStatus(ctx, art.Id, art.Author.Id, domain.ArticleStatusPrivate)
+}
+
+func (svc *articleService) List(ctx context.Context, uid int64, offset int, limit int) ([]domain.Article, error) {
+	return svc.repo.List(ctx, uid, offset, limit)
+}
+
+func (svc *articleService) GetById(ctx context.Context, id int64) (domain.Article, error) {
+	return svc.repo.GetById(ctx, id)
+}
+
+func (svc *articleService) GetPublishedById(ctx context.Context, id int64) (domain.Article, error) {
+	return svc.repo.GetPublishedById(ctx, id)
 }

@@ -1,13 +1,18 @@
 package web
 
 import (
+	"fmt"
 	"net/http"
+	"strconv"
+	"time"
 
+	"github.com/ecodeclub/ekit/slice"
 	"github.com/gin-gonic/gin"
 
 	"basic-go/webook/internal/domain"
 	"basic-go/webook/internal/service"
 	"basic-go/webook/internal/web/jwt"
+	"basic-go/webook/pkg/ginx"
 	"basic-go/webook/pkg/logger"
 )
 
@@ -28,22 +33,28 @@ func (h *ArticleHandler) RegisterRoutes(server *gin.Engine) {
 		ag.POST("/edit", h.Edit)
 		ag.POST("/publish", h.Publish)
 		ag.POST("/withdraw", h.Withdraw)
+		// 创作者的查询接口,查询列表页
+		ag.POST("/list", ginx.WrapReqAndClaims[ListReq, jwt.UserClaims](h.List))
+		ag.GET("/detail/:id", ginx.WrapClaims[jwt.UserClaims](h.Detail))
+	}
+	pg := server.Group("/pub")
+	{
+		pg.GET("/:id", ginx.WrapClaims[jwt.UserClaims](h.PubDetail))
 	}
 }
 
-type ArticleReq struct {
-	Id      int64  `json:"id"`
-	Title   string `json:"title"`
-	Content string `json:"content"`
+// ReaderHandler 拆开比较合适，让 reader 服务于读者， 上面的 article 服务于作者，这里我们混在一起了
+type ReaderHandler struct{}
+
+func (h *ReaderHandler) RegisterRoutes(server *gin.Engine) {
+	pg := server.Group("/pub")
+	{
+		pg.GET("/:id", h.PubDetail)
+	}
 }
 
-func (req ArticleReq) toDomain(uid int64) domain.Article {
-	return domain.Article{
-		Id:      req.Id,
-		Title:   req.Title,
-		Content: req.Content,
-		Author:  domain.Author{Id: uid},
-	}
+func (h *ReaderHandler) PubDetail(ctx *gin.Context) {
+
 }
 
 func (h *ArticleHandler) Edit(ctx *gin.Context) {
@@ -116,4 +127,79 @@ func (h *ArticleHandler) Withdraw(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, Result{Msg: "用户设置文章仅自己可见成功"})
+}
+
+func (h *ArticleHandler) List(ctx *gin.Context, req ListReq, uc jwt.UserClaims) (Result, error) {
+	res, err := h.svc.List(ctx, uc.UserId, req.Offset, req.Limit)
+	if err != nil {
+		return Result{Code: 5, Msg: "系统错误"}, err
+	}
+	// 在列表页，不显示全文，只显示一个"摘要"
+	// 比如说，简单的摘要就是前几句话
+	// 强大的摘要是 AI 帮你生成的
+	return ginx.Result{
+		Data: slice.Map[domain.Article, ArticleVO](res, func(idx int, src domain.Article) ArticleVO {
+			return ArticleVO{
+				Id:       src.Id,
+				Title:    src.Title,
+				Abstract: src.Abstract(),
+				Status:   src.Status.ToUnit8(),
+				// 这个是创作者看自己的文章列表，不需要返回内容
+				// Content: src.Content,
+				// Author: src.Author
+				Ctime: src.Ctime.Format(time.DateTime),
+				Utime: src.Utime.Format(time.DateTime),
+			}
+		}),
+	}, nil
+}
+
+func (h *ArticleHandler) Detail(ctx *gin.Context, uc jwt.UserClaims) (Result, error) {
+	idStr := ctx.Param("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		return Result{Code: 4, Msg: "参数错误"}, err
+	}
+	art, err := h.svc.GetById(ctx, id)
+	if err != nil {
+		return Result{Code: 5, Msg: "系统错误"}, err
+	}
+	if art.Author.Id != uc.UserId {
+		// 不需要告诉前端究竟发生了什么
+		return Result{Code: 4, Msg: "输入有误"}, fmt.Errorf("非法访问文章,创作者 ID 不匹配: %d", uc.UserId)
+	}
+	return Result{
+		Data: ArticleVO{
+			Id:    art.Id,
+			Title: art.Title,
+			// 查看文章详情就是需要 content，不需要 abstract
+			// Abstract: art.Abstract(),
+			Content: art.Content,
+			Status:  art.Status.ToUnit8(),
+			Ctime:   art.Ctime.Format(time.DateTime),
+			Utime:   art.Utime.Format(time.DateTime),
+		},
+	}, nil
+}
+
+func (h *ArticleHandler) PubDetail(ctx *gin.Context, uc jwt.UserClaims) (Result, error) {
+	idStr := ctx.Param("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		return Result{Code: 4, Msg: "参数错误"}, fmt.Errorf("读者查询文章的 ID 错误，ID：%s， error：%w", idStr, err)
+	}
+	art, err := h.svc.GetPublishedById(ctx, id)
+	if err != nil {
+		return Result{Code: 5, Msg: "系统错误"}, fmt.Errorf("读者获取文章失败：%w", err)
+	}
+	return Result{Data: ArticleVO{
+		Id:    id,
+		Title: art.Title,
+		// Abstract: art.Abstract(),
+		Content: art.Content,
+		Status:  art.Status.ToUnit8(),
+		Author:  art.Author.Name,
+		Ctime:   art.Ctime.Format(time.DateTime),
+		Utime:   art.Utime.Format(time.DateTime),
+	}}, nil
 }

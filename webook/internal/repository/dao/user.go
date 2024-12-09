@@ -16,7 +16,8 @@ var (
 )
 
 type User struct {
-	Id       int64          `gorm:"primaryKey,autoIncrement"`
+	Id       int64 `gorm:"primaryKey,autoIncrement"`
+	Nickname sql.NullString
 	Email    sql.NullString `gorm:"unique"`
 	Password string
 	// 正确处理 phone 的 NULL 值
