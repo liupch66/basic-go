@@ -1,20 +1,17 @@
 package ioc
 
 import (
-	"context"
 	"strings"
 	"time"
 
-	"github.com/fsnotify/fsnotify"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
-	"github.com/spf13/viper"
 
 	"basic-go/webook/internal/web"
 	ijwt "basic-go/webook/internal/web/jwt"
 	"basic-go/webook/internal/web/middleware"
-	"basic-go/webook/pkg/ginx/middleware/accesslog"
+	"basic-go/webook/pkg/ginx/middleware/metrics"
 	"basic-go/webook/pkg/ginx/middleware/ratelimit"
 	"basic-go/webook/pkg/logger"
 )
@@ -26,21 +23,22 @@ func InitWebServer(middlewares []gin.HandlerFunc, userHdl *web.UserHandler,
 	userHdl.RegisterRoutes(server)
 	oauth2WechatHal.RegisterRoutes(server)
 	articleHdl.RegisterRoutes(server)
+	web.NewObservabilityHandler().RegisterRoutes(server)
 	return server
 }
 
 func InitMiddlewares(l logger.LoggerV1, redisCli redis.Cmdable, jwtHdl ijwt.Handler) []gin.HandlerFunc {
-	acBuilder := accesslog.NewMiddlewareBuilder(func(ctx context.Context, al *accesslog.AccessLog) {
-		l.Debug("HTTP", logger.Any("access_log", al))
-	})
-	viper.WatchConfig()
-	viper.OnConfigChange(func(in fsnotify.Event) {
-		// 假设 AccessLog 的 ReqBody 和 ReqBody 的动态开关 key 是 al_req_log 和 al_resp_log
-		acBuilder.AllowReqBody(viper.GetBool("al_req_log"))
-		acBuilder.AllowRespBody(viper.GetBool("al_resp_log"))
-	})
+	// acBuilder := accesslog.NewMiddlewareBuilder(func(ctx context.Context, al *accesslog.AccessLog) {
+	// 	l.Debug("HTTP", logger.Any("access_log", al))
+	// })
+	// viper.WatchConfig()
+	// viper.OnConfigChange(func(in fsnotify.Event) {
+	// 	// 假设 AccessLog 的 ReqBody 和 ReqBody 的动态开关 key 是 al_req_log 和 al_resp_log
+	// 	acBuilder.AllowReqBody(viper.GetBool("al_req_log"))
+	// 	acBuilder.AllowRespBody(viper.GetBool("al_resp_log"))
+	// })
 	return []gin.HandlerFunc{
-		acBuilder.Build(),
+		// acBuilder.Build(),
 		// cors 跨域资源共享
 		cors.New(cors.Config{
 			AllowHeaders:     []string{"Authorization", "Content-Type"},
@@ -68,6 +66,14 @@ func InitMiddlewares(l logger.LoggerV1, redisCli redis.Cmdable, jwtHdl ijwt.Hand
 			"/wechat/callback.do",
 			// access_token 过期了要通过 refresh_token 刷新
 			"/users/refresh_token",
+			"/test/metrics",
 		).Build(),
+		(&metrics.PrometheusBuilder{
+			Namespace:  "geektime",
+			Subsystem:  "webook",
+			Name:       "gin_http",
+			Help:       "统计 GIN HTTP 接口",
+			InstanceID: "my-instance-1",
+		}).Build(),
 	}
 }

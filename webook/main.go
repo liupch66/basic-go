@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/viper"
 	_ "github.com/spf13/viper/remote"
 	"go.uber.org/zap"
@@ -12,6 +13,7 @@ import (
 func main() {
 	initViper()
 	initLogger()
+	initPrometheus()
 	zap.L().Info("测试", zap.Any("准备：", "OK"))
 	app := InitApp()
 
@@ -44,4 +46,11 @@ func initLogger() {
 		panic(err)
 	}
 	zap.ReplaceGlobals(logger)
+}
+
+func initPrometheus() {
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		http.ListenAndServe(":8082", nil)
+	}()
 }

@@ -1,0 +1,12 @@
+scrape_configs:
+  - job_name: webook
+    scrape_interval: 5s
+    scrape_timeout: 3s
+    static_configs:
+      # host.docker.internal 是 Docker 为容器提供的一个特殊的 DNS 名称，它用于从容器内部访问宿主机
+      # 目前只在 Docker Desktop for Windows 和 Docker Desktop for Mac 上可用。在其他平台（如 Linux）上，
+      # 你可能需要使用其他方法来从容器内部访问宿主机，例如使用宿主机的网络 IP 地址
+      ##### 这里是通过 hostname -I 或 IP a 查出来的地址！！！
+      # 在 WSL2 上，hostname -I 命令返回的是 WSL2 虚拟机（即 WSL2 内部的网络接口）分配的 IP 地址，而不是宿主机的 IP 地址。
+      # WSL2 使用一个虚拟化技术，在宿主机和 WSL2 虚拟机之间通过虚拟网络进行通信，因此你会看到 WSL2 内部的虚拟网络接口的 IP 地址。
+      - targets: ["192.168.135.108:8082"]
