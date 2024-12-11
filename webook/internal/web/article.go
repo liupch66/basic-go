@@ -206,7 +206,7 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context, uc jwt.UserClaims) (Result,
 	// goroutine 里面最好不要复用外面的 error，防止不清楚最后的 error 到底是哪个
 	eg.Go(func() error {
 		var er error
-		art, er = h.svc.GetPublishedById(ctx, id)
+		art, er = h.svc.GetPublishedById(ctx, id, uc.UserId)
 		return er
 	})
 

@@ -65,6 +65,7 @@ type InteractDAO interface {
 	Get(ctx context.Context, biz string, bizId int64) (Interact, error)
 	GetLikeInfo(ctx context.Context, biz string, bizId, uid int64) (UserLikeBiz, error)
 	GetCollectionInfo(ctx context.Context, biz string, bizId, uid int64) (UserCollectionBiz, error)
+	BatchIncrReadCnt(ctx context.Context, biz string, bizIds []int64) error
 }
 
 type GORMInteractDAO struct {
@@ -216,4 +217,18 @@ func (dao *GORMInteractDAO) GetCollectionInfo(ctx context.Context, biz string, b
 	var res UserCollectionBiz
 	err := dao.db.WithContext(ctx).Where("uid=? AND biz_id=? AND biz=?", uid, bizId, biz).First(&res).Error
 	return res, err
+}
+
+func (dao *GORMInteractDAO) BatchIncrReadCnt(ctx context.Context, biz string, bizIds []int64) error {
+	return dao.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		txDAO := NewGORMInteractDAO(tx)
+		for _, bizId := range bizIds {
+			err := txDAO.IncrReadCnt(ctx, biz, bizId)
+			if err != nil {
+				// 也可以 return nil 容错记日志
+				return err
+			}
+		}
+		return nil
+	})
 }

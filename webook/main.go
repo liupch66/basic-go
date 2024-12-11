@@ -12,14 +12,23 @@ import (
 func main() {
 	initViper()
 	initLogger()
-	server := InitWebServer()
+	zap.L().Info("测试", zap.Any("准备：", "OK"))
+	app := InitApp()
+
+	// 坑，这里不能放到 server.Run 后面，不然没用
+	for _, consumer := range app.consumers {
+		err := consumer.Start()
+		if err != nil {
+			// 这里实现并不好，前面的 consumer 失败会导致后面无法运行，可以考虑回滚
+			panic(err)
+		}
+	}
+
+	server := app.web
 	server.GET("/hello", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "Hello, world!")
 	})
-	err := server.Run("127.0.0.1:8080")
-	if err != nil {
-		panic(err)
-	}
+	server.Run(":8080")
 }
 
 func initViper() {

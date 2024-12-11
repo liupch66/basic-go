@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"basic-go/webook/internal/domain"
+	events "basic-go/webook/internal/events/article"
 	"basic-go/webook/internal/repository/article"
 	"basic-go/webook/pkg/logger"
 )
@@ -16,7 +17,7 @@ type ArticleService interface {
 	Withdraw(ctx context.Context, art domain.Article) error
 	List(ctx context.Context, uid int64, offset int, limit int) ([]domain.Article, error)
 	GetById(ctx context.Context, id int64) (domain.Article, error)
-	GetPublishedById(ctx context.Context, id int64) (domain.Article, error)
+	GetPublishedById(ctx context.Context, id, uid int64) (domain.Article, error)
 }
 
 type articleService struct {
@@ -27,11 +28,12 @@ type articleService struct {
 	readerRepo          article.ArticleReaderRepository
 	retryableReaderRepo article.RetryableReaderRepositoryWithExponentialBackoff
 
-	l logger.LoggerV1
+	l        logger.LoggerV1
+	producer events.Producer
 }
 
-func NewArticleService(repo article.ArticleRepository, l logger.LoggerV1) ArticleService {
-	return &articleService{repo: repo, l: l}
+func NewArticleService(repo article.ArticleRepository, l logger.LoggerV1, producer events.Producer) ArticleService {
+	return &articleService{repo: repo, l: l, producer: producer}
 }
 
 func NewArticleServiceV1(authorRepo article.ArticleAuthorRepository, readerRepo article.ArticleReaderRepository,
@@ -109,6 +111,13 @@ func (svc *articleService) GetById(ctx context.Context, id int64) (domain.Articl
 	return svc.repo.GetById(ctx, id)
 }
 
-func (svc *articleService) GetPublishedById(ctx context.Context, id int64) (domain.Article, error) {
-	return svc.repo.GetPublishedById(ctx, id)
+func (svc *articleService) GetPublishedById(ctx context.Context, id, uid int64) (domain.Article, error) {
+	art, err := svc.repo.GetPublishedById(ctx, id)
+	go func() {
+		er := svc.producer.ProduceReadEvent(events.ReadEvent{Uid: uid, Aid: id})
+		if er != nil {
+			svc.l.Error("发送消息失败", logger.Int64("uid: ", uid), logger.Int64("aid: ", id), logger.Error(er))
+		}
+	}()
+	return art, err
 }

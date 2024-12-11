@@ -7,6 +7,7 @@
 package main
 
 import (
+	article3 "basic-go/webook/internal/events/article"
 	"basic-go/webook/internal/repository"
 	article2 "basic-go/webook/internal/repository/article"
 	"basic-go/webook/internal/repository/cache"
@@ -16,7 +17,6 @@ import (
 	"basic-go/webook/internal/web"
 	"basic-go/webook/internal/web/jwt"
 	"basic-go/webook/ioc"
-	"github.com/gin-gonic/gin"
 )
 
 import (
@@ -25,7 +25,7 @@ import (
 
 // Injectors from wire.go:
 
-func InitWebServer() *gin.Engine {
+func InitApp() *App {
 	loggerV1 := ioc.InitLogger()
 	cmdable := ioc.InitRedis()
 	handler := jwt.NewRedisJwtHandler(cmdable)
@@ -44,9 +44,22 @@ func InitWebServer() *gin.Engine {
 	wechatHandlerConfig := ioc.InitWechatHandlerConfig()
 	oAuth2WechatHandler := web.NewOAuth2WechatHandler(wechatService, userService, wechatHandlerConfig, handler)
 	articleDAO := article.NewGORMArticleDAO(db)
-	articleRepository := article2.NewCachedArticleRepository(articleDAO)
-	articleService := service.NewArticleService(articleRepository, loggerV1)
-	articleHandler := web.NewArticleHandler(articleService, loggerV1)
+	articleRepository := article2.NewCachedArticleRepository(articleDAO, loggerV1)
+	client := ioc.InitKafka()
+	syncProducer := ioc.InitSyncProducer(client)
+	producer := article3.NewSaramaSyncProducer(syncProducer)
+	articleService := service.NewArticleService(articleRepository, loggerV1, producer)
+	interactDAO := dao.NewGORMInteractDAO(db)
+	interactCache := cache.NewRedisInteractCache(cmdable)
+	interactRepository := repository.NewCachedInteractRepository(interactDAO, interactCache, loggerV1)
+	interactService := service.NewInteractService(interactRepository, loggerV1)
+	articleHandler := web.NewArticleHandler(articleService, interactService, loggerV1)
 	engine := ioc.InitWebServer(v, userHandler, oAuth2WechatHandler, articleHandler)
-	return engine
+	interactReadEventBatchConsumer := article3.NewInteractReadEventBatchConsumer(client, interactRepository, loggerV1)
+	v2 := ioc.NewConsumers(interactReadEventBatchConsumer)
+	app := &App{
+		web:       engine,
+		consumers: v2,
+	}
+	return app
 }

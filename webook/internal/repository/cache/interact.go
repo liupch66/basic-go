@@ -43,7 +43,7 @@ func (cache *RedisInteractCache) key(biz string, bizId int64) string {
 }
 
 func (cache *RedisInteractCache) IncrReadCntIfPresent(ctx context.Context, biz string, bizId int64) error {
-	return cache.cmd.Eval(ctx, "", []string{cache.key(biz, bizId)}, argReadCnt, 1).Err()
+	return cache.cmd.Eval(ctx, luaIncrCnt, []string{cache.key(biz, bizId)}, argReadCnt, 1).Err()
 }
 
 func (cache *RedisInteractCache) IncrLikeCntIfPresent(ctx context.Context, biz string, bizId int64) error {

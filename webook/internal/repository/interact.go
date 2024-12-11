@@ -18,6 +18,7 @@ type InteractRepository interface {
 	Get(ctx context.Context, biz string, bizId int64) (domain.Interact, error)
 	Liked(ctx context.Context, biz string, bizId, uid int64) (bool, error)
 	Collected(ctx context.Context, biz string, bizId, uid int64) (bool, error)
+	BatchIncrReadCnt(ctx context.Context, biz string, bizIds []int64) error
 }
 
 type CachedInteractRepository struct {
@@ -111,4 +112,8 @@ func (repo *CachedInteractRepository) Collected(ctx context.Context, biz string,
 	default:
 		return false, err
 	}
+}
+
+func (repo *CachedInteractRepository) BatchIncrReadCnt(ctx context.Context, biz string, bizIds []int64) error {
+	return repo.dao.BatchIncrReadCnt(ctx, biz, bizIds)
 }

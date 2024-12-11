@@ -41,8 +41,8 @@ func InitDB(l logger.LoggerV1) *gorm.DB {
 			IgnoreRecordNotFoundError: true,
 			// 生产环境设置为 true,效果: INSERT INTO `users` (`email`,`password`,
 			// `phone`,`wechat_open_id`,`wechat_union_id`,`ctime`,`utime`) VALUES (?,?,?,?,?,?,?)
-			ParameterizedQueries: true,
-			LogLevel:             glogger.Info,
+			// ParameterizedQueries: true,
+			LogLevel: glogger.Info,
 		}),
 	})
 	if err != nil {
