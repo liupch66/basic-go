@@ -50,7 +50,3 @@ func (p *PrometheusHook) ProcessPipelineHook(next redis.ProcessPipelineHook) red
 	// TODO implement me
 	panic("implement me")
 }
-
-func Use(client *redis.Client) {
-	client.AddHook()
-}

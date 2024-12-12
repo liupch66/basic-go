@@ -1,20 +1,25 @@
 package main
 
 import (
+	"context"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/viper"
 	_ "github.com/spf13/viper/remote"
 	"go.uber.org/zap"
+
+	"basic-go/webook/ioc"
 )
 
 func main() {
 	initViper()
 	initLogger()
 	initPrometheus()
-	zap.L().Info("测试", zap.Any("准备：", "OK"))
+	closeFunc := ioc.InitOtel()
+
 	app := InitApp()
 
 	// 坑，这里不能放到 server.Run 后面，不然没用
@@ -31,6 +36,10 @@ func main() {
 		ctx.String(http.StatusOK, "Hello, world!")
 	})
 	server.Run(":8080")
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+	closeFunc(ctx)
 }
 
 func initViper() {

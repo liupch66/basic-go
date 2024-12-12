@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/redis/go-redis/v9"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 
 	"basic-go/webook/internal/web"
 	ijwt "basic-go/webook/internal/web/jwt"
@@ -83,5 +84,6 @@ func InitMiddlewares(l logger.LoggerV1, redisCli redis.Cmdable, jwtHdl ijwt.Hand
 			Help:       "统计 GIN HTTP 接口",
 			InstanceID: "my-instance-1",
 		}).Build(),
+		otelgin.Middleware("webook"),
 	}
 }

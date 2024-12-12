@@ -11,6 +11,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/redis/go-redis/v9"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 
 	"basic-go/webook/internal/domain"
@@ -108,13 +110,22 @@ func (u *UserHandler) Signup(ctx *gin.Context) {
 		return
 	}
 	// 调用 service 层方法
-	err = u.userSvc.Signup(ctx, domain.User{
+
+	// 坑！！！这里往下传 ctx otel 观测时 gin 和 gorm 的链路分开了，没有连起来
+	/*
+		gin.Context 主要用于简化 HTTP 请求和响应处理，不处理跨请求的超时、取消信号等功能。
+		gin.Context.Request.Context() 返回的是 Go 的 context.Context，它用于跨 API 调用和跨请求的控制，
+		比如设置超时、传递取消信号或传递请求级别的数据。如果你需要处理超时、取消请求等，应该使用 ctx.Request.Context()，而不是直接操作 gin.Context。
+	*/
+	err = u.userSvc.Signup(ctx.Request.Context(), domain.User{
 		Email:    req.Email,
 		Password: req.Password,
 	})
 	if err != nil {
 		// 单独区分邮箱重复错误
 		if errors.Is(err, service.ErrUserDuplicate) {
+			span := trace.SpanFromContext(ctx.Request.Context())
+			span.AddEvent("邮件冲突", trace.WithAttributes(attribute.String("test_key", "test_value")))
 			ctx.String(http.StatusOK, "邮箱重复，请换一个邮箱")
 			return
 		}
