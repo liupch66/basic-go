@@ -12,6 +12,7 @@ type Service struct {
 	client   *sms.Client
 	appId    *string
 	signName *string
+	// summaryVec *prometheus.SummaryVec // 接入记得初始化
 }
 
 func NewService(appId string, signName string, client *sms.Client) *Service {
@@ -44,6 +45,9 @@ func (s *Service) Send(ctx context.Context, tplId string, params []string, numbe
 		return err
 	}
 	for _, status := range resp.Response.SendStatusSet {
+		// 这里想监控短信码只能侵入式监控了
+		// code, _ := strconv.Atoi(*status.Code)
+		// s.summaryVec.WithLabelValues().Observe(float64(code))
 		//  空指针解引用会 panic
 		if status == nil {
 			return fmt.Errorf("短信发送失败")

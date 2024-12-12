@@ -17,6 +17,8 @@ func InitSmsService(cmd redis.Cmdable) sms.Service {
 	// 装饰器模式,可以一直套
 	// svc := ratelimit.NewService(memory.NewService(), limiter.NewRedisSlideWindowLimiter(cmd, 100, time.Second))
 	// return retryable.NewService(svc, 3)
+	// 接入监控
+	// return metrics.NewPrometheusDecorator(memory.NewService())
 	return memory.NewService()
 }
 

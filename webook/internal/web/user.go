@@ -14,6 +14,7 @@ import (
 	"go.uber.org/zap"
 
 	"basic-go/webook/internal/domain"
+	"basic-go/webook/internal/errs"
 	"basic-go/webook/internal/service"
 	ijwt "basic-go/webook/internal/web/jwt"
 	"basic-go/webook/pkg/ginx"
@@ -195,7 +196,7 @@ type LoginReq struct {
 func (u *UserHandler) LoginJWT(ctx *gin.Context, req LoginReq, uc ijwt.UserClaims) (Result, error) {
 	user, err := u.userSvc.Login(ctx, req.Email, req.Password)
 	if errors.Is(err, service.ErrInvalidEmailOrPassword) {
-		return Result{Code: 4, Msg: "邮箱或密码不对"}, err
+		return Result{Code: errs.UserInvalidOrPassword, Msg: "用户或密码不对"}, err
 	}
 	if err != nil {
 		return Result{Code: 5, Msg: "系统错误"}, err

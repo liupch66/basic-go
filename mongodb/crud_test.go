@@ -34,6 +34,8 @@ func TestMongodb(t *testing.T) {
 		// 它接收一个 CommandStartedEvent，该事件包含了命令的相关信息，如命令名称、执行时的时间戳、命令参数等。
 		// 你可以使用这个事件来记录日志或执行其他操作，以便追踪每个数据库命令的执行情况。
 		Started: func(ctx context.Context, startedEvent *event.CommandStartedEvent) {
+			// startTime := time.Now()
+			// ctx = context.WithValue(ctx, "start_time", startTime)
 			// 坑:这里 startedEvent.Command 虽然是 []byte,但是转 string 会乱码,直接打印就好了
 			// fmt.Println(string(startedEvent.Command))
 			// fmt.Println(startedEvent.Command)
@@ -44,12 +46,24 @@ func TestMongodb(t *testing.T) {
 		// 它接收一个 CommandSucceededEvent，该事件包含命令执行成功时的详细信息，如执行时间、返回的结果等。
 		// 你可以在这个函数里记录命令成功执行的日志，或者统计操作的耗时。
 		Succeeded: func(ctx context.Context, succeededEvent *event.CommandSucceededEvent) {
+			// val := ctx.Value("start_time")
+			// startTime, ok := val.(time.Time)
+			// if ok {
+			// 	duration := time.Since(startTime)
+			// 	summaryVec.WithLabelValues("....").Observe(float64(duration))
+			// }
 			t.Logf("Command %s succeeded, took %d ms\n", succeededEvent.CommandName, succeededEvent.Duration)
 		},
 		// 这个回调函数在 MongoDB 命令执行失败时被触发。
 		// 它接收一个 CommandFailedEvent，该事件包含命令失败时的详细信息，如失败原因、错误代码、错误消息等。
 		// 你可以使用这个事件来记录失败的命令，帮助你分析错误或进行异常处理。
 		Failed: func(ctx context.Context, failedEvent *event.CommandFailedEvent) {
+			// val := ctx.Value("start_time")
+			// startTime, ok := val.(time.Time)
+			// if ok {
+			// 	duration := time.Since(startTime)
+			// 	summaryVec.WithLabelValues("....").Observe(float64(duration))
+			// }
 			t.Logf("Command %s failed, error: %s\n", failedEvent.CommandName, failedEvent.Failure)
 		},
 	}

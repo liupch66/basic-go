@@ -2,15 +2,25 @@ package ginx
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/prometheus/client_golang/prometheus"
 
 	"basic-go/webook/pkg/logger"
 )
 
 // L 使用包变量
 var L logger.LoggerV1
+
+var vector *prometheus.CounterVec
+
+func InitCounter(opts prometheus.CounterOpts) {
+	// 这里 []string 也可以考虑设置 method, pattern, http status
+	vector = prometheus.NewCounterVec(opts, []string{"code"})
+	prometheus.MustRegister(vector)
+}
 
 type Result struct {
 	Code int    `json:"code"`
@@ -74,6 +84,7 @@ func WrapReqAndClaims[T any, C jwt.Claims](fn func(ctx *gin.Context, req T, uc C
 			return
 		}
 		res, err := fn(ctx, req, uc)
+		vector.WithLabelValues(strconv.Itoa(res.Code)).Inc()
 		if err != nil {
 			L.Error("处理业务逻辑出错", logger.String("path", ctx.Request.URL.Path),
 				logger.String("route", ctx.FullPath()), logger.Error(err))

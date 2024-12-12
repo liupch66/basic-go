@@ -6,11 +6,13 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/redis/go-redis/v9"
 
 	"basic-go/webook/internal/web"
 	ijwt "basic-go/webook/internal/web/jwt"
 	"basic-go/webook/internal/web/middleware"
+	"basic-go/webook/pkg/ginx"
 	"basic-go/webook/pkg/ginx/middleware/metrics"
 	"basic-go/webook/pkg/ginx/middleware/ratelimit"
 	"basic-go/webook/pkg/logger"
@@ -37,6 +39,12 @@ func InitMiddlewares(l logger.LoggerV1, redisCli redis.Cmdable, jwtHdl ijwt.Hand
 	// 	acBuilder.AllowReqBody(viper.GetBool("al_req_log"))
 	// 	acBuilder.AllowRespBody(viper.GetBool("al_resp_log"))
 	// })
+	ginx.InitCounter(prometheus.CounterOpts{
+		Namespace: "geektime",
+		Subsystem: "webook",
+		Name:      "http_biz_code",
+		Help:      "HTTP 的业务错误码",
+	})
 	return []gin.HandlerFunc{
 		// acBuilder.Build(),
 		// cors 跨域资源共享
