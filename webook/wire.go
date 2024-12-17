@@ -17,6 +17,13 @@ import (
 	"basic-go/webook/ioc"
 )
 
+var rankServiceSet = wire.NewSet(
+	cache.NewRedisRankCache,
+	cache.NewLocalRankCache,
+	repository.NewCachedRankRepository,
+	service.NewBatchRankService,
+)
+
 func InitApp() *App {
 	wire.Build(
 		ioc.InitDB, ioc.InitRedis, ioc.InitLogger,
@@ -31,6 +38,10 @@ func InitApp() *App {
 
 		service.NewUserService, service.NewCodeService, ioc.InitSmsService, ioc.InitWechatService,
 		service.NewArticleService, service.NewInteractService,
+
+		rankServiceSet,
+		ioc.InitRankJob,
+		ioc.InitJobs,
 
 		web.NewUserHandler, ioc.InitWechatHandlerConfig, web.NewOAuth2WechatHandler, ijwt.NewRedisJwtHandler,
 		web.NewArticleHandler,

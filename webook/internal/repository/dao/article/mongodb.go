@@ -123,3 +123,8 @@ func (m *MongoDBDAO) GetById(ctx context.Context, id int64) (Article, error) {
 	// TODO implement me
 	panic("implement me")
 }
+
+func (m *MongoDBDAO) ListPub(ctx context.Context, start time.Time, offset int, limit int) ([]Article, error) {
+	// TODO implement me
+	panic("implement me")
+}

@@ -10,6 +10,7 @@ import (
 	"basic-go/webook/pkg/logger"
 )
 
+//go:generate mockgen -package=svcmocks -source=article.go -destination=mocks/article_mock.go ArticleService
 type ArticleService interface {
 	Save(ctx context.Context, art domain.Article) (int64, error)
 	Publish(ctx context.Context, art domain.Article) (int64, error)
@@ -18,6 +19,8 @@ type ArticleService interface {
 	List(ctx context.Context, uid int64, offset int, limit int) ([]domain.Article, error)
 	GetById(ctx context.Context, id int64) (domain.Article, error)
 	GetPublishedById(ctx context.Context, id, uid int64) (domain.Article, error)
+	// ListPub 因为是分批次查询，要考虑耗时的影响，保证取的都是 start 之前的文章
+	ListPub(ctx context.Context, start time.Time, offset int, limit int) ([]domain.Article, error)
 }
 
 type articleService struct {
@@ -120,4 +123,8 @@ func (svc *articleService) GetPublishedById(ctx context.Context, id, uid int64) 
 		}
 	}()
 	return art, err
+}
+
+func (svc *articleService) ListPub(ctx context.Context, start time.Time, offset int, limit int) ([]domain.Article, error) {
+	return svc.repo.ListPub(ctx, start, offset, limit)
 }

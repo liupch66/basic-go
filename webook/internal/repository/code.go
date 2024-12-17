@@ -12,6 +12,7 @@ var (
 	ErrCodeVerifyExpired = cache.ErrCodeVerifyExpired
 )
 
+//go:generate mockgen -package=repomocks -source=code.go -destination=mocks/code_mock.go CodeRepository
 type CodeRepository interface {
 	Store(ctx context.Context, biz, phone, code string) error
 	Verify(ctx context.Context, biz, phone, inputCode string) (bool, error)

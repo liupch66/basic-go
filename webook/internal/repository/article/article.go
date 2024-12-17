@@ -23,6 +23,7 @@ type ArticleRepository interface {
 	List(ctx context.Context, uid int64, offset int, limit int) ([]domain.Article, error)
 	GetById(ctx context.Context, id int64) (domain.Article, error)
 	GetPublishedById(ctx context.Context, id int64) (domain.Article, error)
+	ListPub(ctx context.Context, start time.Time, offset int, limit int) ([]domain.Article, error)
 }
 
 type CachedArticleRepository struct {
@@ -236,4 +237,14 @@ func (repo *CachedArticleRepository) GetPublishedById(ctx context.Context, id in
 		}
 	}()
 	return res, nil
+}
+
+func (repo *CachedArticleRepository) ListPub(ctx context.Context, start time.Time, offset int, limit int) ([]domain.Article, error) {
+	arts, err := repo.dao.ListPub(ctx, start, offset, limit)
+	if err != nil {
+		return []domain.Article{}, err
+	}
+	return slice.Map(arts, func(idx int, src dao.Article) domain.Article {
+		return repo.entityToDomain(src)
+	}), nil
 }

@@ -31,6 +31,9 @@ func main() {
 		}
 	}
 
+	cron := app.cron
+	cron.Start()
+
 	server := app.web
 	server.GET("/hello", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "Hello, world!")
@@ -40,6 +43,14 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 	closeFunc(ctx)
+
+	// 可以考虑超时强制退出，防止有些任务执行很长时间
+	tm := time.NewTimer(10 * time.Minute)
+	select {
+	case <-tm.C:
+	case <-cron.Stop().Done():
+	}
+
 }
 
 func initViper() {

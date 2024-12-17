@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 
+	article3 "basic-go/webook/internal/events/article"
 	"basic-go/webook/internal/repository"
 	"basic-go/webook/internal/repository/article"
 	"basic-go/webook/internal/repository/cache"
@@ -47,9 +48,13 @@ func InitWechatSvc() wechat.Service {
 	return wechat.NewService("", "", nil)
 }
 
-func InitArticleHandler(dao article2.ArticleDAO) *web.ArticleHandler {
-	wire.Build(thirdPS, article.NewCachedArticleRepository,
-		service.NewArticleService, web.NewArticleHandler)
+func InitArticleHandler(artDAO article2.ArticleDAO) *web.ArticleHandler {
+	wire.Build(thirdPS,
+		dao.NewGORMInteractDAO, cache.NewRedisInteractCache,
+		article.NewCachedArticleRepository, repository.NewCachedInteractRepository,
+		ioc.InitKafka, ioc.InitSyncProducer, article3.NewSaramaSyncProducer,
+		service.NewInteractService, service.NewArticleService,
+		web.NewArticleHandler)
 	return &web.ArticleHandler{}
 }
 

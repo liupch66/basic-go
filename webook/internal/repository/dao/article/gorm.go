@@ -122,3 +122,11 @@ func (dao *GORMArticleDAO) GetById(ctx context.Context, id int64) (Article, erro
 	err := dao.db.WithContext(ctx).Model(&Article{}).Where("id = ?", id).First(&art).Error
 	return art, err
 }
+
+func (dao *GORMArticleDAO) ListPub(ctx context.Context, start time.Time, offset int, limit int) ([]Article, error) {
+	var res []Article
+	// 热度榜分批查询，按 utime 降序方便排除七天前的数据
+	err := dao.db.WithContext(ctx).Where("utime<?", start.UnixMilli()).Order("utime DESC").
+		Offset(offset).Limit(limit).Find(&res).Error
+	return res, err
+}

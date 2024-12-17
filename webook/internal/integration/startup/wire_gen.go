@@ -7,6 +7,7 @@
 package startup
 
 import (
+	article3 "basic-go/webook/internal/events/article"
 	"basic-go/webook/internal/repository"
 	article2 "basic-go/webook/internal/repository/article"
 	"basic-go/webook/internal/repository/cache"
@@ -49,11 +50,20 @@ func InitWechatSvc() wechat.Service {
 	return wechatService
 }
 
-func InitArticleHandler(dao2 article.ArticleDAO) *web.ArticleHandler {
-	articleRepository := article2.NewCachedArticleRepository(dao2)
+func InitArticleHandler(artDAO article.ArticleDAO) *web.ArticleHandler {
 	loggerV1 := InitLog()
-	articleService := service.NewArticleService(articleRepository, loggerV1)
-	articleHandler := web.NewArticleHandler(articleService, loggerV1)
+	articleRepository := article2.NewCachedArticleRepository(artDAO, loggerV1)
+	client := ioc.InitKafka()
+	syncProducer := ioc.InitSyncProducer(client)
+	producer := article3.NewSaramaSyncProducer(syncProducer)
+	articleService := service.NewArticleService(articleRepository, loggerV1, producer)
+	gormDB := InitTestDB()
+	interactDAO := dao.NewGORMInteractDAO(gormDB)
+	cmdable := InitRedis()
+	interactCache := cache.NewRedisInteractCache(cmdable)
+	interactRepository := repository.NewCachedInteractRepository(interactDAO, interactCache, loggerV1)
+	interactService := service.NewInteractService(interactRepository, loggerV1)
+	articleHandler := web.NewArticleHandler(articleService, interactService, loggerV1)
 	return articleHandler
 }
 

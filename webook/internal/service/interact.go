@@ -10,12 +10,15 @@ import (
 	"basic-go/webook/pkg/logger"
 )
 
+//go:generate mockgen -package=svcmocks -source=interact.go -destination=mocks/interact_mock.go InteractService
 type InteractService interface {
 	IncrReadCnt(ctx context.Context, biz string, bizId int64) error
 	Like(ctx context.Context, biz string, id int64, uid int64) error
 	CancelLike(ctx context.Context, biz string, bizId int64, uid int64) error
 	Collect(ctx context.Context, biz string, bizId int64, cid int64, uid int64) error
 	Get(ctx context.Context, biz string, bizId, uid int64) (domain.Interact, error)
+	// GetByIds 这里本来返回 []domain.Interact，返回 map 是方便查找对应文章 id 的点赞数据
+	GetByIds(ctx context.Context, biz string, ids []int64) (map[int64]domain.Interact, error)
 }
 
 type interactService struct {
@@ -75,4 +78,9 @@ func (svc *interactService) Get(ctx context.Context, biz string, bizId, uid int6
 		inter.Collected = collected
 	}
 	return inter, nil
+}
+
+func (svc *interactService) GetByIds(ctx context.Context, biz string, ids []int64) (map[int64]domain.Interact, error) {
+	// TODO implement me
+	panic("implement me")
 }

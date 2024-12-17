@@ -17,6 +17,7 @@ import (
 	"basic-go/webook/internal/web"
 	"basic-go/webook/internal/web/jwt"
 	"basic-go/webook/ioc"
+	"github.com/google/wire"
 )
 
 import (
@@ -57,9 +58,20 @@ func InitApp() *App {
 	engine := ioc.InitWebServer(v, userHandler, oAuth2WechatHandler, articleHandler)
 	interactReadEventBatchConsumer := article3.NewInteractReadEventBatchConsumer(client, interactRepository, loggerV1)
 	v2 := ioc.NewConsumers(interactReadEventBatchConsumer)
+	localRankCache := cache.NewLocalRankCache()
+	redisRankCache := cache.NewRedisRankCache(cmdable)
+	rankRepository := repository.NewCachedRankRepository(localRankCache, redisRankCache)
+	rankService := service.NewBatchRankService(articleService, interactService, rankRepository)
+	rankJob := ioc.InitRankJob(rankService)
+	cron := ioc.InitJobs(loggerV1, rankJob)
 	app := &App{
 		web:       engine,
 		consumers: v2,
+		cron:      cron,
 	}
 	return app
 }
+
+// wire.go:
+
+var rankServiceSet = wire.NewSet(cache.NewRedisRankCache, cache.NewLocalRankCache, repository.NewCachedRankRepository, service.NewBatchRankService)
