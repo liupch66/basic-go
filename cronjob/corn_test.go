@@ -1,4 +1,4 @@
-package cronjob
+package main
 
 import (
 	"log"
@@ -37,4 +37,17 @@ func TestCron(t *testing.T) {
 	// wait for running jobs to complete
 	<-ctx.Done()
 	t.Log("彻底停止")
+}
+
+func TestCronInterval(t *testing.T) {
+	c := cron.New(cron.WithSeconds())
+	t.Log("start: ", time.Now().Format(time.TimeOnly))
+	// 每小时每隔 3 分钟执行一次，这意味着 Cron 会在每小时的 0, 3, 6, ... 分钟时触发任务，而不是从某个特定时间点开始执行并隔 5 分钟一次。
+	_, err := c.AddFunc("* */3 * * * *", func() {
+		t.Log(time.Now().Format(time.TimeOnly))
+	})
+	assert.NoError(t, err)
+	c.Start()
+	time.Sleep(20 * time.Minute)
+	<-c.Stop().Done()
 }
