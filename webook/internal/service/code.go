@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"math/rand"
 
-	"basic-go/webook/internal/repository"
-	"basic-go/webook/internal/service/sms"
+	"github.com/liupch66/basic-go/webook/internal/repository"
+	"github.com/liupch66/basic-go/webook/internal/service/sms"
 )
 
 const codeTplId = "1977183"

@@ -10,13 +10,13 @@ import (
 	"github.com/redis/go-redis/v9"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 
-	"basic-go/webook/internal/web"
-	ijwt "basic-go/webook/internal/web/jwt"
-	"basic-go/webook/internal/web/middleware"
-	"basic-go/webook/pkg/ginx"
-	"basic-go/webook/pkg/ginx/middleware/metrics"
-	"basic-go/webook/pkg/ginx/middleware/ratelimit"
-	"basic-go/webook/pkg/logger"
+	"github.com/liupch66/basic-go/webook/internal/web"
+	ijwt "github.com/liupch66/basic-go/webook/internal/web/jwt"
+	"github.com/liupch66/basic-go/webook/internal/web/middleware"
+	"github.com/liupch66/basic-go/webook/pkg/ginx"
+	"github.com/liupch66/basic-go/webook/pkg/ginx/middleware/metrics"
+	"github.com/liupch66/basic-go/webook/pkg/ginx/middleware/ratelimit"
+	"github.com/liupch66/basic-go/webook/pkg/logger"
 )
 
 func InitWebServer(middlewares []gin.HandlerFunc, userHdl *web.UserHandler,

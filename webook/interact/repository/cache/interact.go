@@ -9,7 +9,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"basic-go/webook/interact/domain"
+	"github.com/liupch66/basic-go/webook/interact/domain"
 )
 
 const (

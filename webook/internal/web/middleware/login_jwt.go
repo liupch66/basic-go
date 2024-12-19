@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 
-	ijwt "basic-go/webook/internal/web/jwt"
+	ijwt "github.com/liupch66/basic-go/webook/internal/web/jwt"
 )
 
 type LoginJWTMiddlewareBuilder struct {

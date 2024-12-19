@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/robfig/cron/v3"
 
-	"basic-go/webook/internal/events"
+	"github.com/liupch66/basic-go/webook/internal/events"
 )
 
 type App struct {

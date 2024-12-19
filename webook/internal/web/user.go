@@ -15,11 +15,11 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 
-	"basic-go/webook/internal/domain"
-	"basic-go/webook/internal/errs"
-	"basic-go/webook/internal/service"
-	ijwt "basic-go/webook/internal/web/jwt"
-	"basic-go/webook/pkg/ginx"
+	"github.com/liupch66/basic-go/webook/internal/domain"
+	"github.com/liupch66/basic-go/webook/internal/errs"
+	"github.com/liupch66/basic-go/webook/internal/service"
+	ijwt "github.com/liupch66/basic-go/webook/internal/web/jwt"
+	"github.com/liupch66/basic-go/webook/pkg/ginx"
 )
 
 // 确保 UserHandler 实现了 handle 接口

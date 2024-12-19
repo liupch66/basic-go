@@ -10,10 +10,10 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/lithammer/shortuuid/v4"
 
-	"basic-go/webook/internal/domain"
-	"basic-go/webook/internal/service"
-	"basic-go/webook/internal/service/oauth2/wechat"
-	ijwt "basic-go/webook/internal/web/jwt"
+	"github.com/liupch66/basic-go/webook/internal/domain"
+	"github.com/liupch66/basic-go/webook/internal/service"
+	"github.com/liupch66/basic-go/webook/internal/service/oauth2/wechat"
+	ijwt "github.com/liupch66/basic-go/webook/internal/web/jwt"
 )
 
 var _ handler = (*OAuth2WechatHandler)(nil)

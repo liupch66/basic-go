@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	"basic-go/webook/internal/domain"
+	"github.com/liupch66/basic-go/webook/internal/domain"
 )
 
 var statusPrivate = domain.ArticleStatusPrivate.ToUnit8()

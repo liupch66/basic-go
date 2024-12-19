@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"basic-go/webook/internal/job"
-	"basic-go/webook/internal/service"
-	"basic-go/webook/pkg/logger"
+	"github.com/liupch66/basic-go/webook/internal/job"
+	"github.com/liupch66/basic-go/webook/internal/service"
+	"github.com/liupch66/basic-go/webook/pkg/logger"
 )
 
 func InitLocalFuncExecutor(svc service.RankService) *job.LocalFuncExecutor {

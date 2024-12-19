@@ -11,7 +11,7 @@ import (
 	_ "github.com/spf13/viper/remote"
 	"go.uber.org/zap"
 
-	"basic-go/webook/ioc"
+	"github.com/liupch66/basic-go/webook/ioc"
 )
 
 func main() {

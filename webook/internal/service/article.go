@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
-	"basic-go/webook/internal/domain"
-	events "basic-go/webook/internal/events/article"
-	"basic-go/webook/internal/repository/article"
-	"basic-go/webook/pkg/logger"
+	"github.com/liupch66/basic-go/webook/internal/domain"
+	events "github.com/liupch66/basic-go/webook/internal/events/article"
+	"github.com/liupch66/basic-go/webook/internal/repository/article"
+	"github.com/liupch66/basic-go/webook/pkg/logger"
 )
 
 //go:generate mockgen -package=svcmocks -source=article.go -destination=mocks/article_mock.go ArticleService

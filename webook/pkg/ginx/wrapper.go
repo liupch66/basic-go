@@ -8,7 +8,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/prometheus/client_golang/prometheus"
 
-	"basic-go/webook/pkg/logger"
+	"github.com/liupch66/basic-go/webook/pkg/logger"
 )
 
 // L 使用包变量

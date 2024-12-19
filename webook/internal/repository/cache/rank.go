@@ -7,7 +7,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"basic-go/webook/internal/domain"
+	"github.com/liupch66/basic-go/webook/internal/domain"
 )
 
 type RankCache interface {

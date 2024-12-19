@@ -8,8 +8,8 @@ import (
 
 	"go.uber.org/zap"
 
-	"basic-go/webook/internal/domain"
-	"basic-go/webook/pkg/logger"
+	"github.com/liupch66/basic-go/webook/internal/domain"
+	"github.com/liupch66/basic-go/webook/pkg/logger"
 )
 
 const authURLPattern = "https://open.weixin.qq.com/connect/qrconnect?appid=%s&redirect_uri=%s&response_type=code&scope=snsapi_login&state=%s#wechat_redire"

@@ -10,11 +10,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	"basic-go/webook/internal/domain"
-	"basic-go/webook/internal/repository/cache"
-	cachemocks "basic-go/webook/internal/repository/cache/mocks"
-	"basic-go/webook/internal/repository/dao"
-	daomocks "basic-go/webook/internal/repository/dao/mocks"
+	"github.com/liupch66/basic-go/webook/internal/domain"
+	"github.com/liupch66/basic-go/webook/internal/repository/cache"
+	cachemocks "github.com/liupch66/basic-go/webook/internal/repository/cache/mocks"
+	"github.com/liupch66/basic-go/webook/internal/repository/dao"
+	daomocks "github.com/liupch66/basic-go/webook/internal/repository/dao/mocks"
 )
 
 func TestCachedUserRepository_FindById(t *testing.T) {

@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	"basic-go/webook/internal/service/sms"
-	smsmocks "basic-go/webook/internal/service/sms/mocks"
+	"github.com/liupch66/basic-go/webook/internal/service/sms"
+	smsmocks "github.com/liupch66/basic-go/webook/internal/service/sms/mocks"
 )
 
 func TestService_Send(t *testing.T) {

@@ -8,9 +8,9 @@ import (
 
 	"github.com/ecodeclub/ekit/queue"
 
-	service2 "basic-go/webook/interact/service"
-	"basic-go/webook/internal/domain"
-	"basic-go/webook/internal/repository"
+	service2 "github.com/liupch66/basic-go/webook/interact/service"
+	"github.com/liupch66/basic-go/webook/internal/domain"
+	"github.com/liupch66/basic-go/webook/internal/repository"
 )
 
 type RankService interface {

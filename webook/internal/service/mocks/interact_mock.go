@@ -13,7 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	"basic-go/webook/interact/domain"
+	"github.com/liupch66/basic-go/webook/interact/domain"
 
 	gomock "go.uber.org/mock/gomock"
 )

@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
-	"basic-go/webook/internal/domain"
-	"basic-go/webook/internal/repository"
-	"basic-go/webook/internal/service/sms"
-	"basic-go/webook/pkg/logger"
+	"github.com/liupch66/basic-go/webook/internal/domain"
+	"github.com/liupch66/basic-go/webook/internal/repository"
+	"github.com/liupch66/basic-go/webook/internal/service/sms"
+	"github.com/liupch66/basic-go/webook/pkg/logger"
 )
 
 type Service struct {

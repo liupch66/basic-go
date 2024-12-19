@@ -5,7 +5,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"basic-go/webook/internal/service/sms"
+	"github.com/liupch66/basic-go/webook/internal/service/sms"
 )
 
 type Service struct {

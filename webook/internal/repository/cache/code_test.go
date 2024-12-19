@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	"basic-go/webook/internal/repository/cache/redismocks"
+	"github.com/liupch66/basic-go/webook/internal/repository/cache/redismocks"
 )
 
 func TestRedisCodeCache_Set(t *testing.T) {

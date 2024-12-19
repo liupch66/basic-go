@@ -6,9 +6,9 @@ import (
 
 	"github.com/IBM/sarama"
 
-	"basic-go/webook/interact/repository"
-	"basic-go/webook/pkg/logger"
-	"basic-go/webook/pkg/saramax"
+	"github.com/liupch66/basic-go/webook/interact/repository"
+	"github.com/liupch66/basic-go/webook/pkg/logger"
+	"github.com/liupch66/basic-go/webook/pkg/saramax"
 )
 
 type InteractReadEventConsumer struct {

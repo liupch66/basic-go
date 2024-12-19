@@ -6,9 +6,9 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	"basic-go/webook/internal/domain"
-	"basic-go/webook/internal/repository"
-	"basic-go/webook/pkg/logger"
+	"github.com/liupch66/basic-go/webook/internal/domain"
+	"github.com/liupch66/basic-go/webook/internal/repository"
+	"github.com/liupch66/basic-go/webook/pkg/logger"
 )
 
 var (

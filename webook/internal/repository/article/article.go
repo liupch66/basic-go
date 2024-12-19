@@ -7,11 +7,11 @@ import (
 	"github.com/ecodeclub/ekit/slice"
 	"gorm.io/gorm"
 
-	"basic-go/webook/internal/domain"
-	"basic-go/webook/internal/repository"
-	"basic-go/webook/internal/repository/cache"
-	dao "basic-go/webook/internal/repository/dao/article"
-	"basic-go/webook/pkg/logger"
+	"github.com/liupch66/basic-go/webook/internal/domain"
+	"github.com/liupch66/basic-go/webook/internal/repository"
+	"github.com/liupch66/basic-go/webook/internal/repository/cache"
+	dao "github.com/liupch66/basic-go/webook/internal/repository/dao/article"
+	"github.com/liupch66/basic-go/webook/pkg/logger"
 )
 
 type ArticleRepository interface {

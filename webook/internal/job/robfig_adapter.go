@@ -5,7 +5,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 
-	"basic-go/webook/pkg/logger"
+	"github.com/liupch66/basic-go/webook/pkg/logger"
 )
 
 type RankJobAdapter struct {

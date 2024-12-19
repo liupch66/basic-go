@@ -16,10 +16,10 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
-	"basic-go/webook/internal/domain"
-	"basic-go/webook/internal/integration/startup"
-	"basic-go/webook/internal/repository/dao/article"
-	"basic-go/webook/internal/web/jwt"
+	"github.com/liupch66/basic-go/webook/internal/domain"
+	"github.com/liupch66/basic-go/webook/internal/integration/startup"
+	"github.com/liupch66/basic-go/webook/internal/repository/dao/article"
+	"github.com/liupch66/basic-go/webook/internal/web/jwt"
 )
 
 type ArticleMongoHandlerTestSuite struct {

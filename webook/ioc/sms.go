@@ -8,9 +8,9 @@ import (
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/profile"
 	tencentSMS "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms/v20210111"
 
-	"basic-go/webook/internal/service/sms"
-	"basic-go/webook/internal/service/sms/memory"
-	"basic-go/webook/internal/service/sms/tencent"
+	"github.com/liupch66/basic-go/webook/internal/service/sms"
+	"github.com/liupch66/basic-go/webook/internal/service/sms/memory"
+	"github.com/liupch66/basic-go/webook/internal/service/sms/tencent"
 )
 
 func InitSmsService(cmd redis.Cmdable) sms.Service {

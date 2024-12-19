@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 
-	"basic-go/webook/internal/domain"
-	"basic-go/webook/internal/repository/cache"
+	"github.com/liupch66/basic-go/webook/internal/domain"
+	"github.com/liupch66/basic-go/webook/internal/repository/cache"
 )
 
 type RankRepository interface {

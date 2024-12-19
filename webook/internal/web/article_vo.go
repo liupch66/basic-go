@@ -1,7 +1,7 @@
 package web
 
 import (
-	"basic-go/webook/internal/domain"
+	"github.com/liupch66/basic-go/webook/internal/domain"
 )
 
 // VO: view object, 就是对标前端的

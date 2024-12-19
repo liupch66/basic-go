@@ -7,7 +7,7 @@ import (
 
 	"github.com/IBM/sarama"
 
-	"basic-go/webook/pkg/logger"
+	"github.com/liupch66/basic-go/webook/pkg/logger"
 )
 
 type BatchHandler[T any] struct {

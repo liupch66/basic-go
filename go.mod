@@ -1,4 +1,4 @@
-module basic-go
+module github.com/liupch66/basic-go
 
 go 1.23.3
 

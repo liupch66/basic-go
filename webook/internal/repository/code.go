@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"basic-go/webook/internal/repository/cache"
+	"github.com/liupch66/basic-go/webook/internal/repository/cache"
 )
 
 var (

@@ -4,8 +4,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/redis/go-redis/v9"
 
-	"basic-go/webook/internal/repository/cache"
-	"basic-go/webook/pkg/redisx"
+	"github.com/liupch66/basic-go/webook/internal/repository/cache"
+	"github.com/liupch66/basic-go/webook/pkg/redisx"
 )
 
 // InitUserCache 配合 PrometheusHook 使用。这里只能传 *redis.Client，因为 redis.Cmdable 没有 AddHook 方法

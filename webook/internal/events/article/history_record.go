@@ -6,11 +6,11 @@ import (
 
 	"github.com/IBM/sarama"
 
-	"basic-go/webook/internal/domain"
-	"basic-go/webook/internal/events"
-	"basic-go/webook/internal/repository"
-	"basic-go/webook/pkg/logger"
-	"basic-go/webook/pkg/saramax"
+	"github.com/liupch66/basic-go/webook/internal/domain"
+	"github.com/liupch66/basic-go/webook/internal/events"
+	"github.com/liupch66/basic-go/webook/internal/repository"
+	"github.com/liupch66/basic-go/webook/pkg/logger"
+	"github.com/liupch66/basic-go/webook/pkg/saramax"
 )
 
 var _ events.Consumer = (*HistoryRecordConsumer)(nil)

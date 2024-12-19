@@ -1,7 +1,7 @@
 package startup
 
 import (
-	"basic-go/webook/pkg/logger"
+	"github.com/liupch66/basic-go/webook/pkg/logger"
 )
 
 func InitLog() logger.LoggerV1 {

@@ -7,9 +7,9 @@ import (
 
 	"golang.org/x/sync/semaphore"
 
-	"basic-go/webook/internal/domain"
-	"basic-go/webook/internal/service"
-	"basic-go/webook/pkg/logger"
+	"github.com/liupch66/basic-go/webook/internal/domain"
+	"github.com/liupch66/basic-go/webook/internal/service"
+	"github.com/liupch66/basic-go/webook/pkg/logger"
 )
 
 // CronJob 使用别名来做一个解耦，后续万一我们要加字段，就很方便扩展

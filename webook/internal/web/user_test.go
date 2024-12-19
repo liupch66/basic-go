@@ -14,11 +14,11 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 
-	"basic-go/webook/internal/domain"
-	"basic-go/webook/internal/service"
-	svcmocks "basic-go/webook/internal/service/mocks"
-	"basic-go/webook/internal/web/jwt"
-	jwtHdlmocks "basic-go/webook/internal/web/jwt/mock"
+	"github.com/liupch66/basic-go/webook/internal/domain"
+	"github.com/liupch66/basic-go/webook/internal/service"
+	svcmocks "github.com/liupch66/basic-go/webook/internal/service/mocks"
+	"github.com/liupch66/basic-go/webook/internal/web/jwt"
+	jwtHdlmocks "github.com/liupch66/basic-go/webook/internal/web/jwt/mock"
 )
 
 // require.NoError(t, err)：如果 err 为 nil，测试继续。如果 err 不为 nil，会立即导致测试失败并停止后续代码执行。

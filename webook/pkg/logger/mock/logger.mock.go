@@ -10,7 +10,7 @@
 package loggermocks
 
 import (
-	logger "basic-go/webook/pkg/logger"
+	logger "github.com/liupch66/basic-go/webook/pkg/logger"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"

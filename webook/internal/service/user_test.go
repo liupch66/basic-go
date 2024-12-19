@@ -9,9 +9,9 @@ import (
 	"go.uber.org/mock/gomock"
 	"golang.org/x/crypto/bcrypt"
 
-	"basic-go/webook/internal/domain"
-	"basic-go/webook/internal/repository"
-	repomocks "basic-go/webook/internal/repository/mocks"
+	"github.com/liupch66/basic-go/webook/internal/domain"
+	"github.com/liupch66/basic-go/webook/internal/repository"
+	repomocks "github.com/liupch66/basic-go/webook/internal/repository/mocks"
 )
 
 func TestEncrypt(t *testing.T) {

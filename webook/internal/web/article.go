@@ -10,13 +10,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/sync/errgroup"
 
-	domain2 "basic-go/webook/interact/domain"
-	service2 "basic-go/webook/interact/service"
-	"basic-go/webook/internal/domain"
-	"basic-go/webook/internal/service"
-	"basic-go/webook/internal/web/jwt"
-	"basic-go/webook/pkg/ginx"
-	"basic-go/webook/pkg/logger"
+	domain2 "github.com/liupch66/basic-go/webook/interact/domain"
+	service2 "github.com/liupch66/basic-go/webook/interact/service"
+	"github.com/liupch66/basic-go/webook/internal/domain"
+	"github.com/liupch66/basic-go/webook/internal/service"
+	"github.com/liupch66/basic-go/webook/internal/web/jwt"
+	"github.com/liupch66/basic-go/webook/pkg/ginx"
+	"github.com/liupch66/basic-go/webook/pkg/logger"
 )
 
 var _ handler = (*ArticleHandler)(nil)

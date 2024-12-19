@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 
-	"basic-go/webook/pkg/ratelimit"
+	"github.com/liupch66/basic-go/webook/pkg/ratelimit"
 )
 
 //go:embed slide_window.lua

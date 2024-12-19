@@ -7,10 +7,10 @@
 package startup
 
 import (
-	"basic-go/webook/interact/repository"
-	"basic-go/webook/interact/repository/cache"
-	"basic-go/webook/interact/repository/dao"
-	"basic-go/webook/interact/service"
+	"github.com/liupch66/basic-go/webook/interact/repository"
+	"github.com/liupch66/basic-go/webook/interact/repository/cache"
+	"github.com/liupch66/basic-go/webook/interact/repository/dao"
+	"github.com/liupch66/basic-go/webook/interact/service"
 	"github.com/google/wire"
 )
 

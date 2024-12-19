@@ -10,9 +10,9 @@ import (
 	"golang.org/x/net/context"
 	"gorm.io/gorm"
 
-	"basic-go/webook/interact/domain"
-	"basic-go/webook/interact/integration/startup"
-	"basic-go/webook/interact/repository/dao"
+	"github.com/liupch66/basic-go/webook/interact/domain"
+	"github.com/liupch66/basic-go/webook/interact/integration/startup"
+	"github.com/liupch66/basic-go/webook/interact/repository/dao"
 )
 
 type InteractTestSuite struct {

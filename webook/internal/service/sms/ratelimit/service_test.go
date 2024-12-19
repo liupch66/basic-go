@@ -9,10 +9,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	"basic-go/webook/internal/service/sms"
-	smsmocks "basic-go/webook/internal/service/sms/mocks"
-	"basic-go/webook/pkg/ratelimit"
-	limitmocks "basic-go/webook/pkg/ratelimit/mocks"
+	"github.com/liupch66/basic-go/webook/internal/service/sms"
+	smsmocks "github.com/liupch66/basic-go/webook/internal/service/sms/mocks"
+	"github.com/liupch66/basic-go/webook/pkg/ratelimit"
+	limitmocks "github.com/liupch66/basic-go/webook/pkg/ratelimit/mocks"
 )
 
 func TestService_Send(t *testing.T) {

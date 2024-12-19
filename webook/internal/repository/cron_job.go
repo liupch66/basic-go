@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"basic-go/webook/internal/domain"
-	"basic-go/webook/internal/repository/dao"
+	"github.com/liupch66/basic-go/webook/internal/domain"
+	"github.com/liupch66/basic-go/webook/internal/repository/dao"
 )
 
 type CronJobRepository interface {

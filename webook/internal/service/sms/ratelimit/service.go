@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	"basic-go/webook/internal/service/sms"
-	"basic-go/webook/pkg/ratelimit"
+	"github.com/liupch66/basic-go/webook/internal/service/sms"
+	"github.com/liupch66/basic-go/webook/pkg/ratelimit"
 )
 
 const key = "sms_tencent"

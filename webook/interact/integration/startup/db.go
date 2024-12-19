@@ -9,7 +9,7 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
-	"basic-go/webook/interact/repository/dao"
+	"github.com/liupch66/basic-go/webook/interact/repository/dao"
 )
 
 var db *gorm.DB

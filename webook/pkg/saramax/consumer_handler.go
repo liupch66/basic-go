@@ -5,7 +5,7 @@ import (
 
 	"github.com/IBM/sarama"
 
-	"basic-go/webook/pkg/logger"
+	"github.com/liupch66/basic-go/webook/pkg/logger"
 )
 
 type Handler[T any] struct {

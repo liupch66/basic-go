@@ -5,8 +5,8 @@ import (
 	"math"
 	"time"
 
-	"basic-go/webook/internal/domain"
-	"basic-go/webook/pkg/logger"
+	"github.com/liupch66/basic-go/webook/internal/domain"
+	"github.com/liupch66/basic-go/webook/pkg/logger"
 )
 
 type ArticleReaderRepository interface {

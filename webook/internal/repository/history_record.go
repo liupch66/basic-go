@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"basic-go/webook/internal/domain"
+	"github.com/liupch66/basic-go/webook/internal/domain"
 )
 
 type HistoryRecordRepository interface {

@@ -3,7 +3,7 @@ package ioc
 import (
 	"go.uber.org/zap"
 
-	"basic-go/webook/pkg/logger"
+	"github.com/liupch66/basic-go/webook/pkg/logger"
 )
 
 // func InitLogger() *zap.Logger {

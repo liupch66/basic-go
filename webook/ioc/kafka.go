@@ -4,8 +4,8 @@ import (
 	"github.com/IBM/sarama"
 	"github.com/spf13/viper"
 
-	events2 "basic-go/webook/interact/events"
-	"basic-go/webook/internal/events"
+	events2 "github.com/liupch66/basic-go/webook/interact/events"
+	"github.com/liupch66/basic-go/webook/internal/events"
 )
 
 func InitKafka() sarama.Client {

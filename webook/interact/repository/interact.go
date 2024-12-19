@@ -6,10 +6,10 @@ import (
 
 	"github.com/ecodeclub/ekit/slice"
 
-	"basic-go/webook/interact/domain"
-	"basic-go/webook/interact/repository/cache"
-	"basic-go/webook/interact/repository/dao"
-	"basic-go/webook/pkg/logger"
+	"github.com/liupch66/basic-go/webook/interact/domain"
+	"github.com/liupch66/basic-go/webook/interact/repository/cache"
+	"github.com/liupch66/basic-go/webook/interact/repository/dao"
+	"github.com/liupch66/basic-go/webook/pkg/logger"
 )
 
 //go:generate mockgen -package=mockrepo -source=interact.go -destination=mocks/mock_interact.go InteractRepository

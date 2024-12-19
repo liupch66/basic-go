@@ -12,9 +12,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"basic-go/webook/internal/integration/startup"
-	"basic-go/webook/internal/web"
-	"basic-go/webook/ioc"
+	"github.com/liupch66/basic-go/webook/internal/integration/startup"
+	"github.com/liupch66/basic-go/webook/internal/web"
+	"github.com/liupch66/basic-go/webook/ioc"
 )
 
 func TestUserHandler_SendSmsLoginCode(t *testing.T) {

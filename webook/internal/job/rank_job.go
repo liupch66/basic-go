@@ -7,8 +7,8 @@ import (
 
 	"github.com/gotomicro/redis-lock"
 
-	"basic-go/webook/internal/service"
-	"basic-go/webook/pkg/logger"
+	"github.com/liupch66/basic-go/webook/internal/service"
+	"github.com/liupch66/basic-go/webook/pkg/logger"
 )
 
 type RankJob struct {

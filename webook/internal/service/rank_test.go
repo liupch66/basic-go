@@ -8,10 +8,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	domain2 "basic-go/webook/interact/domain"
-	service2 "basic-go/webook/interact/service"
-	"basic-go/webook/internal/domain"
-	svcmocks "basic-go/webook/internal/service/mocks"
+	domain2 "github.com/liupch66/basic-go/webook/interact/domain"
+	service2 "github.com/liupch66/basic-go/webook/interact/service"
+	"github.com/liupch66/basic-go/webook/internal/domain"
+	svcmocks "github.com/liupch66/basic-go/webook/internal/service/mocks"
 )
 
 func TestBatchRankService_TopN(t *testing.T) {

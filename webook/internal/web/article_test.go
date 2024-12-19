@@ -13,12 +13,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 
-	"basic-go/webook/internal/domain"
-	"basic-go/webook/internal/service"
-	svcmocks "basic-go/webook/internal/service/mocks"
-	"basic-go/webook/internal/web/jwt"
-	"basic-go/webook/pkg/logger"
-	loggermocks "basic-go/webook/pkg/logger/mock"
+	"github.com/liupch66/basic-go/webook/internal/domain"
+	"github.com/liupch66/basic-go/webook/internal/service"
+	svcmocks "github.com/liupch66/basic-go/webook/internal/service/mocks"
+	"github.com/liupch66/basic-go/webook/internal/web/jwt"
+	"github.com/liupch66/basic-go/webook/pkg/logger"
+	loggermocks "github.com/liupch66/basic-go/webook/pkg/logger/mock"
 )
 
 func TestArticleHandler_Publish(t *testing.T) {

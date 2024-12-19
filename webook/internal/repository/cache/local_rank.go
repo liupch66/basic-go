@@ -7,7 +7,7 @@ import (
 
 	"github.com/ecodeclub/ekit/syncx/atomicx"
 
-	"basic-go/webook/internal/domain"
+	"github.com/liupch66/basic-go/webook/internal/domain"
 )
 
 type LocalRankCache struct {

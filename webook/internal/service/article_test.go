@@ -8,11 +8,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	"basic-go/webook/internal/domain"
-	"basic-go/webook/internal/repository/article"
-	artRepomocks "basic-go/webook/internal/repository/article/mocks"
-	"basic-go/webook/pkg/logger"
-	loggermocks "basic-go/webook/pkg/logger/mock"
+	"github.com/liupch66/basic-go/webook/internal/domain"
+	"github.com/liupch66/basic-go/webook/internal/repository/article"
+	artRepomocks "github.com/liupch66/basic-go/webook/internal/repository/article/mocks"
+	"github.com/liupch66/basic-go/webook/pkg/logger"
+	loggermocks "github.com/liupch66/basic-go/webook/pkg/logger/mock"
 )
 
 func Test_articleService_Publish(t *testing.T) {

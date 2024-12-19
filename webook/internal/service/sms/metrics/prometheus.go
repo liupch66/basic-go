@@ -6,7 +6,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 
-	"basic-go/webook/internal/service/sms"
+	"github.com/liupch66/basic-go/webook/internal/service/sms"
 )
 
 type PrometheusDecorator struct {
