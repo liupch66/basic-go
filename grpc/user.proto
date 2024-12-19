@@ -1,0 +1,39 @@
+syntax = "proto3";
+option go_package = ".;userpb";// 前面是生成位置，后面可以指定生成的包名，可以不指定
+
+message Address{}
+
+enum Gender{
+  unknown = 0;
+  male = 1;
+  female = 2;
+}
+
+message User {
+  int64 id = 1;// user_id => 生成 UserId，注释也一起生成了
+  string name = 2;
+  string avatar = 4;
+  optional int64 age = 5; // 这个会生成指针 *int64
+  map<string, string> attributes = 6;
+  repeated string nicknames = 7;
+  Address address = 8;
+
+  // 生成的是接口，要用类型断言。是一种标记接口，没有什么用
+  oneof contacts {
+    string email = 9;
+    string phone = 10;
+  }
+  Gender gender = 11;
+}
+
+message GetByIdReq {
+  int64 id = 1;
+}
+
+message GetByIdResp {
+  User user = 1;
+}
+
+service UserService {
+  rpc GetById(GetByIdReq) returns (GetByIdResp);
+}
