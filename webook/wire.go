@@ -31,7 +31,7 @@ func InitApp() *App {
 		article2.NewInteractReadEventBatchConsumer, ioc.NewConsumers,
 
 		dao.NewUserDAO, article3.NewGORMArticleDAO, dao.NewGORMInteractDAO,
-		cache.NewUserCache, cache.NewCodeCache, cache.NewRedisInteractCache,
+		cache.NewUserCache, cache.NewCodeCache, cache.NewRedisInteractCache, cache.NewRedisArticleCache,
 
 		repository.NewUserRepository, repository.NewCodeRepository, article.NewCachedArticleRepository,
 		repository.NewCachedInteractRepository,

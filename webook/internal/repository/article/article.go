@@ -40,8 +40,8 @@ type CachedArticleRepository struct {
 	db *gorm.DB
 }
 
-func NewCachedArticleRepository(dao dao.ArticleDAO, l logger.LoggerV1) ArticleRepository {
-	return &CachedArticleRepository{dao: dao, l: l}
+func NewCachedArticleRepository(userRepo repository.UserRepository, dao dao.ArticleDAO, cache cache.ArticleCache, l logger.LoggerV1) ArticleRepository {
+	return &CachedArticleRepository{userRepo: userRepo, dao: dao, cache: cache, l: l}
 }
 
 func (repo *CachedArticleRepository) entityToDomain(ae dao.Article) domain.Article {

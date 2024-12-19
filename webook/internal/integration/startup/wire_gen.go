@@ -50,16 +50,32 @@ func InitWechatSvc() wechat.Service {
 	return wechatService
 }
 
-func InitArticleHandler(artDAO article.ArticleDAO) *web.ArticleHandler {
-	loggerV1 := InitLog()
-	articleRepository := article2.NewCachedArticleRepository(artDAO, loggerV1)
-	client := ioc.InitKafka()
-	syncProducer := ioc.InitSyncProducer(client)
-	producer := article3.NewSaramaSyncProducer(syncProducer)
-	articleService := service.NewArticleService(articleRepository, loggerV1, producer)
+func InitInteractService() service.InteractService {
 	gormDB := InitTestDB()
 	interactDAO := dao.NewGORMInteractDAO(gormDB)
 	cmdable := InitRedis()
+	interactCache := cache.NewRedisInteractCache(cmdable)
+	loggerV1 := InitLog()
+	interactRepository := repository.NewCachedInteractRepository(interactDAO, interactCache, loggerV1)
+	interactService := service.NewInteractService(interactRepository, loggerV1)
+	return interactService
+}
+
+// 这里注入 artDAO 是为了方便集成测试 GORM DB 和 MongoDB 实现的文章储存
+func InitArticleHandler(artDAO article.ArticleDAO) *web.ArticleHandler {
+	gormDB := InitTestDB()
+	userDAO := dao.NewUserDAO(gormDB)
+	cmdable := InitRedis()
+	userCache := cache.NewUserCache(cmdable)
+	userRepository := repository.NewUserRepository(userDAO, userCache)
+	articleCache := cache.NewRedisArticleCache(cmdable)
+	loggerV1 := InitLog()
+	articleRepository := article2.NewCachedArticleRepository(userRepository, artDAO, articleCache, loggerV1)
+	client := InitKafka()
+	syncProducer := ioc.InitSyncProducer(client)
+	producer := article3.NewSaramaSyncProducer(syncProducer)
+	articleService := service.NewArticleService(articleRepository, loggerV1, producer)
+	interactDAO := dao.NewGORMInteractDAO(gormDB)
 	interactCache := cache.NewRedisInteractCache(cmdable)
 	interactRepository := repository.NewCachedInteractRepository(interactDAO, interactCache, loggerV1)
 	interactService := service.NewInteractService(interactRepository, loggerV1)
@@ -72,13 +88,19 @@ func InitWebServer() *gin.Engine {
 	cmdable := InitRedis()
 	handler := jwt.NewRedisJwtHandler(cmdable)
 	v := ioc.InitMiddlewares(loggerV1, cmdable, handler)
-	userService := InitUserSvc()
-	codeService := InitCodeSvc()
+	gormDB := InitTestDB()
+	userDAO := dao.NewUserDAO(gormDB)
+	userCache := cache.NewUserCache(cmdable)
+	userRepository := repository.NewUserRepository(userDAO, userCache)
+	userService := service.NewUserService(userRepository, loggerV1)
+	codeCache := cache.NewCodeCache(cmdable)
+	codeRepository := repository.NewCodeRepository(codeCache)
+	smsService := ioc.InitSmsService(cmdable)
+	codeService := service.NewCodeService(codeRepository, smsService)
 	userHandler := web.NewUserHandler(userService, codeService, handler)
-	wechatService := InitWechatSvc()
+	wechatService := ioc.InitWechatService(loggerV1)
 	wechatHandlerConfig := ioc.InitWechatHandlerConfig()
 	oAuth2WechatHandler := web.NewOAuth2WechatHandler(wechatService, userService, wechatHandlerConfig, handler)
-	gormDB := InitTestDB()
 	articleDAO := article.NewGORMArticleDAO(gormDB)
 	articleHandler := InitArticleHandler(articleDAO)
 	engine := ioc.InitWebServer(v, userHandler, oAuth2WechatHandler, articleHandler)
@@ -87,8 +109,12 @@ func InitWebServer() *gin.Engine {
 
 // wire.go:
 
-var thirdPS = wire.NewSet(InitTestDB, InitRedis, InitLog)
-
-var userSvcPS = wire.NewSet(dao.NewUserDAO, cache.NewUserCache, repository.NewUserRepository, service.NewUserService)
-
-var codeSvcPS = wire.NewSet(cache.NewCodeCache, repository.NewCodeRepository, ioc.InitSmsService, service.NewCodeService)
+var (
+	thirdPS = wire.NewSet(InitTestDB, InitRedis, InitLog,
+		InitKafka, ioc.InitSyncProducer, article3.NewSaramaSyncProducer)
+	userSvcPS     = wire.NewSet(dao.NewUserDAO, cache.NewUserCache, repository.NewUserRepository, service.NewUserService)
+	codeSvcPS     = wire.NewSet(cache.NewCodeCache, repository.NewCodeRepository, ioc.InitSmsService, service.NewCodeService)
+	articleSvcPS  = wire.NewSet(article.NewGORMArticleDAO, cache.NewRedisArticleCache, article2.NewCachedArticleRepository, service.NewArticleService)
+	wechatSvcPS   = wire.NewSet(ioc.InitWechatService)
+	interactSvcPS = wire.NewSet(dao.NewGORMInteractDAO, cache.NewRedisInteractCache, repository.NewCachedInteractRepository, service.NewInteractService)
+)

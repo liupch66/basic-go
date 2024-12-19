@@ -54,15 +54,15 @@ func (r *RankJob) Run() error {
 		r.lock = lock
 		// 怎么保证一直拿锁
 		go func() {
-			r.localLock.Lock()
-			defer r.localLock.Unlock()
 			// 自动续约
 			er := r.lock.AutoRefresh(r.timeout/2, time.Second)
 			if er != nil {
 				r.l.Error("自动续约失败：", logger.Error(er))
 			}
 			// 下次继续抢锁
+			r.localLock.Lock()
 			r.lock = nil
+			r.localLock.Unlock()
 		}()
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), r.timeout)

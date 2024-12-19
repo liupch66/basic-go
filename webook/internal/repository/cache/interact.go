@@ -61,17 +61,19 @@ func (cache *RedisInteractCache) IncrCollectCntIfPresent(ctx context.Context, bi
 func (cache *RedisInteractCache) Get(ctx context.Context, biz string, bizId int64) (domain.Interact, error) {
 	// HMGET key field [field ...]
 	// 返回一个接口{}，以区分空字符串和 nil 值
-	data, err := cache.cmd.HMGet(ctx, cache.key(biz, bizId), argReadCnt, argLikeCnt, argCollectCnt).Result()
+	data, err := cache.cmd.HGetAll(ctx, cache.key(biz, bizId)).Result()
 	if err != nil {
 		return domain.Interact{}, err
 	}
+	// 还是得一个个判断，因为有可能只有阅读数没有点赞数之类的，这里偷懒没写
 	if len(data) == 0 {
 		return domain.Interact{}, ErrKeyNotExist
 	}
-	readCnt, _ := strconv.ParseInt(data[0].(string), 10, 64)
-	likeCnt, _ := strconv.ParseInt(data[1].(string), 10, 64)
-	collectCnt, _ := strconv.ParseInt(data[0].(string), 10, 64)
+	readCnt, _ := strconv.ParseInt(data[argReadCnt], 10, 64)
+	likeCnt, _ := strconv.ParseInt(data[argLikeCnt], 10, 64)
+	collectCnt, _ := strconv.ParseInt(data[argCollectCnt], 10, 64)
 	return domain.Interact{
+		BizId:      bizId,
 		ReadCnt:    readCnt,
 		LikeCnt:    likeCnt,
 		CollectCnt: collectCnt,

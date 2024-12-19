@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/ecodeclub/ekit/slice"
+
 	"basic-go/webook/internal/domain"
 	"basic-go/webook/internal/repository/cache"
 	"basic-go/webook/internal/repository/dao"
@@ -19,6 +21,7 @@ type InteractRepository interface {
 	Liked(ctx context.Context, biz string, bizId, uid int64) (bool, error)
 	Collected(ctx context.Context, biz string, bizId, uid int64) (bool, error)
 	BatchIncrReadCnt(ctx context.Context, biz string, bizIds []int64) error
+	GetByIds(ctx context.Context, biz string, ids []int64) ([]domain.Interact, error)
 }
 
 type CachedInteractRepository struct {
@@ -77,6 +80,7 @@ func (repo *CachedInteractRepository) Get(ctx context.Context, biz string, bizId
 		return domain.Interact{}, err
 	}
 	inter = domain.Interact{
+		BizId:      interEntity.BizId,
 		ReadCnt:    interEntity.ReadCnt,
 		LikeCnt:    interEntity.LikeCnt,
 		CollectCnt: interEntity.CollectCnt,
@@ -116,4 +120,19 @@ func (repo *CachedInteractRepository) Collected(ctx context.Context, biz string,
 
 func (repo *CachedInteractRepository) BatchIncrReadCnt(ctx context.Context, biz string, bizIds []int64) error {
 	return repo.dao.BatchIncrReadCnt(ctx, biz, bizIds)
+}
+
+func (repo *CachedInteractRepository) GetByIds(ctx context.Context, biz string, ids []int64) ([]domain.Interact, error) {
+	interEntity, err := repo.dao.GetByIds(ctx, biz, ids)
+	if err != nil {
+		return nil, err
+	}
+	return slice.Map(interEntity, func(idx int, src dao.Interact) domain.Interact {
+		return domain.Interact{
+			BizId:      interEntity[idx].BizId,
+			ReadCnt:    interEntity[idx].ReadCnt,
+			LikeCnt:    interEntity[idx].LikeCnt,
+			CollectCnt: interEntity[idx].CollectCnt,
+		}
+	}), nil
 }

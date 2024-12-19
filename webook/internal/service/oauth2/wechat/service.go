@@ -29,7 +29,7 @@ type service struct {
 	l         logger.LoggerV1
 }
 
-func NewService(appId string, appSecret string, l logger.LoggerV1) Service {
+func NewWechatService(appId string, appSecret string, l logger.LoggerV1) Service {
 	// 这里 client 不是严格的依赖注入
 	return &service{appId: appId, appSecret: appSecret, client: http.DefaultClient, l: l}
 }

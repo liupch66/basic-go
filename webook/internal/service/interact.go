@@ -81,6 +81,13 @@ func (svc *interactService) Get(ctx context.Context, biz string, bizId, uid int6
 }
 
 func (svc *interactService) GetByIds(ctx context.Context, biz string, ids []int64) (map[int64]domain.Interact, error) {
-	// TODO implement me
-	panic("implement me")
+	inters, err := svc.repo.GetByIds(ctx, biz, ids)
+	if err != nil {
+		return nil, err
+	}
+	res := make(map[int64]domain.Interact, len(inters))
+	for _, inter := range inters {
+		res[inter.BizId] = inter
+	}
+	return res, nil
 }
