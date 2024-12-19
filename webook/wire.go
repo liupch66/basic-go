@@ -5,6 +5,11 @@ package main
 import (
 	"github.com/google/wire"
 
+	"basic-go/webook/interact/events"
+	repository2 "basic-go/webook/interact/repository"
+	cache2 "basic-go/webook/interact/repository/cache"
+	dao2 "basic-go/webook/interact/repository/dao"
+	service2 "basic-go/webook/interact/service"
 	article2 "basic-go/webook/internal/events/article"
 	"basic-go/webook/internal/repository"
 	"basic-go/webook/internal/repository/article"
@@ -26,18 +31,18 @@ var rankServiceSet = wire.NewSet(
 
 func InitApp() *App {
 	wire.Build(
-		ioc.InitDB, ioc.InitRedis, ioc.InitLogger,
+		ioc.InitDB, ioc.InitRedis, ioc.InitRLockClient, ioc.InitLogger,
 		ioc.InitKafka, ioc.InitSyncProducer, article2.NewSaramaSyncProducer,
-		article2.NewInteractReadEventBatchConsumer, ioc.NewConsumers,
+		events.NewInteractReadEventBatchConsumer, ioc.NewConsumers,
 
-		dao.NewUserDAO, article3.NewGORMArticleDAO, dao.NewGORMInteractDAO,
-		cache.NewUserCache, cache.NewCodeCache, cache.NewRedisInteractCache, cache.NewRedisArticleCache,
+		dao.NewUserDAO, article3.NewGORMArticleDAO, dao2.NewGORMInteractDAO,
+		cache.NewUserCache, cache.NewCodeCache, cache2.NewRedisInteractCache, cache.NewRedisArticleCache,
 
 		repository.NewUserRepository, repository.NewCodeRepository, article.NewCachedArticleRepository,
-		repository.NewCachedInteractRepository,
+		repository2.NewCachedInteractRepository,
 
 		service.NewUserService, service.NewCodeService, ioc.InitSmsService, ioc.InitWechatService,
-		service.NewArticleService, service.NewInteractService,
+		service.NewArticleService, service2.NewInteractService,
 
 		rankServiceSet,
 		ioc.InitRankJob,

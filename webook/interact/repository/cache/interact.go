@@ -9,7 +9,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"basic-go/webook/internal/domain"
+	"basic-go/webook/interact/domain"
 )
 
 const (
@@ -21,6 +21,7 @@ const (
 //go:embed lua/interact_incr_cnt.lua
 var luaIncrCnt string
 
+//go:generate mockgen -package=mockcache -source=interact.go -destination=mocks/mock_interact.go  InteractCache
 type InteractCache interface {
 	IncrReadCntIfPresent(ctx context.Context, biz string, bizId int64) error
 	IncrLikeCntIfPresent(ctx context.Context, biz string, bizId int64) error

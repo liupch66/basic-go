@@ -7,6 +7,11 @@
 package main
 
 import (
+	"basic-go/webook/interact/events"
+	repository2 "basic-go/webook/interact/repository"
+	cache2 "basic-go/webook/interact/repository/cache"
+	dao2 "basic-go/webook/interact/repository/dao"
+	service2 "basic-go/webook/interact/service"
 	article3 "basic-go/webook/internal/events/article"
 	"basic-go/webook/internal/repository"
 	article2 "basic-go/webook/internal/repository/article"
@@ -45,24 +50,26 @@ func InitApp() *App {
 	wechatHandlerConfig := ioc.InitWechatHandlerConfig()
 	oAuth2WechatHandler := web.NewOAuth2WechatHandler(wechatService, userService, wechatHandlerConfig, handler)
 	articleDAO := article.NewGORMArticleDAO(db)
-	articleRepository := article2.NewCachedArticleRepository(articleDAO, loggerV1)
+	articleCache := cache.NewRedisArticleCache(cmdable)
+	articleRepository := article2.NewCachedArticleRepository(userRepository, articleDAO, articleCache, loggerV1)
 	client := ioc.InitKafka()
 	syncProducer := ioc.InitSyncProducer(client)
 	producer := article3.NewSaramaSyncProducer(syncProducer)
 	articleService := service.NewArticleService(articleRepository, loggerV1, producer)
-	interactDAO := dao.NewGORMInteractDAO(db)
-	interactCache := cache.NewRedisInteractCache(cmdable)
-	interactRepository := repository.NewCachedInteractRepository(interactDAO, interactCache, loggerV1)
-	interactService := service.NewInteractService(interactRepository, loggerV1)
+	interactDAO := dao2.NewGORMInteractDAO(db)
+	interactCache := cache2.NewRedisInteractCache(cmdable)
+	interactRepository := repository2.NewCachedInteractRepository(interactDAO, interactCache, loggerV1)
+	interactService := service2.NewInteractService(interactRepository, loggerV1)
 	articleHandler := web.NewArticleHandler(articleService, interactService, loggerV1)
 	engine := ioc.InitWebServer(v, userHandler, oAuth2WechatHandler, articleHandler)
-	interactReadEventBatchConsumer := article3.NewInteractReadEventBatchConsumer(client, interactRepository, loggerV1)
+	interactReadEventBatchConsumer := events.NewInteractReadEventBatchConsumer(client, interactRepository, loggerV1)
 	v2 := ioc.NewConsumers(interactReadEventBatchConsumer)
 	localRankCache := cache.NewLocalRankCache()
 	redisRankCache := cache.NewRedisRankCache(cmdable)
 	rankRepository := repository.NewCachedRankRepository(localRankCache, redisRankCache)
 	rankService := service.NewBatchRankService(articleService, interactService, rankRepository)
-	rankJob := ioc.InitRankJob(rankService)
+	rlockClient := ioc.InitRLockClient(cmdable)
+	rankJob := ioc.InitRankJob(rankService, rlockClient, loggerV1)
 	cron := ioc.InitJobs(loggerV1, rankJob)
 	app := &App{
 		web:       engine,

@@ -10,9 +10,10 @@
 package svcmocks
 
 import (
-	domain "basic-go/webook/internal/domain"
 	context "context"
 	reflect "reflect"
+
+	"basic-go/webook/interact/domain"
 
 	gomock "go.uber.org/mock/gomock"
 )

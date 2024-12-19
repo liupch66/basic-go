@@ -36,7 +36,7 @@ func (i *HistoryRecordConsumer) Consume(msg *sarama.ConsumerMessage, t ReadEvent
 }
 
 func (i *HistoryRecordConsumer) Start() error {
-	cg, err := sarama.NewConsumerGroupFromClient("interact", i.client)
+	cg, err := sarama.NewConsumerGroupFromClient("history_record", i.client)
 	if err != nil {
 		return err
 	}

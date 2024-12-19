@@ -8,6 +8,7 @@ import (
 
 	"github.com/ecodeclub/ekit/queue"
 
+	service2 "basic-go/webook/interact/service"
 	"basic-go/webook/internal/domain"
 	"basic-go/webook/internal/repository"
 )
@@ -20,7 +21,7 @@ type RankService interface {
 
 type BatchRankService struct {
 	artSvc    ArticleService
-	interSvc  InteractService
+	interSvc  service2.InteractService
 	repo      repository.RankRepository
 	batchSize int
 	n         int
@@ -28,7 +29,7 @@ type BatchRankService struct {
 	scoreFunc func(utime time.Time, likeCnt int64) float64
 }
 
-func NewBatchRankService(artSvc ArticleService, interSvc InteractService, repo repository.RankRepository) RankService {
+func NewBatchRankService(artSvc ArticleService, interSvc service2.InteractService, repo repository.RankRepository) RankService {
 	return &BatchRankService{
 		artSvc:    artSvc,
 		interSvc:  interSvc,

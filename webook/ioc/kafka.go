@@ -4,8 +4,8 @@ import (
 	"github.com/IBM/sarama"
 	"github.com/spf13/viper"
 
+	events2 "basic-go/webook/interact/events"
 	"basic-go/webook/internal/events"
-	"basic-go/webook/internal/events/article"
 )
 
 func InitKafka() sarama.Client {
@@ -34,11 +34,6 @@ func InitSyncProducer(client sarama.Client) sarama.SyncProducer {
 	return producer
 }
 
-// NewConsumers 面临的问题依旧是所有的 Consumer 在这里注册一下
-// func NewConsumers(c0 *article.InteractReadEventConsumer) []events.Consumer {
-// 	return []events.Consumer{c0}
-// }
-
-func NewConsumers(c0 *article.InteractReadEventBatchConsumer) []events.Consumer {
+func NewConsumers(c0 *events2.InteractReadEventBatchConsumer) []events.Consumer {
 	return []events.Consumer{c0}
 }

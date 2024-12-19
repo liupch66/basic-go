@@ -5,12 +5,12 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
-	"basic-go/webook/internal/domain"
-	"basic-go/webook/internal/repository"
+	"basic-go/webook/interact/domain"
+	"basic-go/webook/interact/repository"
 	"basic-go/webook/pkg/logger"
 )
 
-//go:generate mockgen -package=svcmocks -source=interact.go -destination=mocks/interact_mock.go InteractService
+//go:generate mockgen -package=mocksvc -source=interact.go -destination=mocks/mock_interact.go InteractService
 type InteractService interface {
 	IncrReadCnt(ctx context.Context, biz string, bizId int64) error
 	Like(ctx context.Context, biz string, id int64, uid int64) error

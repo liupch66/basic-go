@@ -10,6 +10,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/sync/errgroup"
 
+	domain2 "basic-go/webook/interact/domain"
+	service2 "basic-go/webook/interact/service"
 	"basic-go/webook/internal/domain"
 	"basic-go/webook/internal/service"
 	"basic-go/webook/internal/web/jwt"
@@ -21,12 +23,12 @@ var _ handler = (*ArticleHandler)(nil)
 
 type ArticleHandler struct {
 	svc      service.ArticleService
-	interSvc service.InteractService
+	interSvc service2.InteractService
 	l        logger.LoggerV1
 	biz      string
 }
 
-func NewArticleHandler(svc service.ArticleService, interSvc service.InteractService, l logger.LoggerV1) *ArticleHandler {
+func NewArticleHandler(svc service.ArticleService, interSvc service2.InteractService, l logger.LoggerV1) *ArticleHandler {
 	return &ArticleHandler{svc: svc, interSvc: interSvc, l: l, biz: "article"}
 }
 
@@ -200,7 +202,7 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context, uc jwt.UserClaims) (Result,
 	var (
 		eg    errgroup.Group
 		art   domain.Article
-		inter domain.Interact
+		inter domain2.Interact
 	)
 
 	// goroutine 里面最好不要复用外面的 error，防止不清楚最后的 error 到底是哪个

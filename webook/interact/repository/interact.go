@@ -6,12 +6,13 @@ import (
 
 	"github.com/ecodeclub/ekit/slice"
 
-	"basic-go/webook/internal/domain"
-	"basic-go/webook/internal/repository/cache"
-	"basic-go/webook/internal/repository/dao"
+	"basic-go/webook/interact/domain"
+	"basic-go/webook/interact/repository/cache"
+	"basic-go/webook/interact/repository/dao"
 	"basic-go/webook/pkg/logger"
 )
 
+//go:generate mockgen -package=mockrepo -source=interact.go -destination=mocks/mock_interact.go InteractRepository
 type InteractRepository interface {
 	IncrReadCnt(ctx context.Context, biz string, bizId int64) error
 	IncrLike(ctx context.Context, biz string, bizId int64, uid int64) error

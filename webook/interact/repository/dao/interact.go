@@ -57,6 +57,7 @@ type UserCollectionBiz struct {
 	Utime int64
 }
 
+//go:generate mockgen -package=mockdao -source=interact.go -destination=mocks/mock_interact.go InteractDAO
 type InteractDAO interface {
 	IncrReadCnt(ctx context.Context, biz string, bizId int64) error
 	InsertLikeInfo(ctx context.Context, biz string, bizId int64, uid int64) error

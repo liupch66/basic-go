@@ -6,6 +6,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 
+	repository2 "basic-go/webook/interact/repository"
+	cache2 "basic-go/webook/interact/repository/cache"
+	dao2 "basic-go/webook/interact/repository/dao"
+	service2 "basic-go/webook/interact/service"
 	article3 "basic-go/webook/internal/events/article"
 	"basic-go/webook/internal/repository"
 	"basic-go/webook/internal/repository/article"
@@ -21,7 +25,7 @@ import (
 
 var (
 	thirdPS = wire.NewSet(InitTestDB, InitRedis, InitLog,
-		InitKafka, ioc.InitSyncProducer, article3.NewSaramaSyncProducer)
+		InitKafka, InitSyncProducer, article3.NewSaramaSyncProducer)
 	userSvcPS = wire.NewSet(dao.NewUserDAO, cache.NewUserCache,
 		repository.NewUserRepository,
 		service.NewUserService)
@@ -32,9 +36,9 @@ var (
 		article.NewCachedArticleRepository,
 		service.NewArticleService)
 	wechatSvcPS   = wire.NewSet(ioc.InitWechatService)
-	interactSvcPS = wire.NewSet(dao.NewGORMInteractDAO, cache.NewRedisInteractCache,
-		repository.NewCachedInteractRepository,
-		service.NewInteractService)
+	interactSvcPS = wire.NewSet(dao2.NewGORMInteractDAO, cache2.NewRedisInteractCache,
+		repository2.NewCachedInteractRepository,
+		service2.NewInteractService)
 )
 
 func InitUserSvc() service.UserService {
@@ -52,9 +56,9 @@ func InitWechatSvc() wechat.Service {
 	return wechat.NewWechatService("", "", nil)
 }
 
-func InitInteractService() service.InteractService {
+func InitInteractService() service2.InteractService {
 	wire.Build(thirdPS, interactSvcPS)
-	return service.NewInteractService(nil, nil)
+	return service2.NewInteractService(nil, nil)
 }
 
 // 这里注入 artDAO 是为了方便集成测试 GORM DB 和 MongoDB 实现的文章储存

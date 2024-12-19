@@ -1,4 +1,4 @@
-package article
+package events
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/IBM/sarama"
 
-	"basic-go/webook/internal/repository"
+	"basic-go/webook/interact/repository"
 	"basic-go/webook/pkg/logger"
 	"basic-go/webook/pkg/saramax"
 )
@@ -37,7 +37,7 @@ func (i *InteractReadEventBatchConsumer) Start() error {
 		return err
 	}
 	go func() {
-		er := cg.Consume(context.Background(), []string{topicReadEvent}, saramax.NewBatchHandler[ReadEvent](i.l, i.Consume))
+		er := cg.Consume(context.Background(), []string{"article_read_event"}, saramax.NewBatchHandler[ReadEvent](i.l, i.Consume))
 		if er != nil {
 			i.l.Error("退出了批量消费循环异常", logger.Error(err))
 		}

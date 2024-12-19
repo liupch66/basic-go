@@ -7,6 +7,10 @@
 package startup
 
 import (
+	repository2 "basic-go/webook/interact/repository"
+	cache2 "basic-go/webook/interact/repository/cache"
+	dao2 "basic-go/webook/interact/repository/dao"
+	service2 "basic-go/webook/interact/service"
 	article3 "basic-go/webook/internal/events/article"
 	"basic-go/webook/internal/repository"
 	article2 "basic-go/webook/internal/repository/article"
@@ -50,14 +54,14 @@ func InitWechatSvc() wechat.Service {
 	return wechatService
 }
 
-func InitInteractService() service.InteractService {
+func InitInteractService() service2.InteractService {
 	gormDB := InitTestDB()
-	interactDAO := dao.NewGORMInteractDAO(gormDB)
+	interactDAO := dao2.NewGORMInteractDAO(gormDB)
 	cmdable := InitRedis()
-	interactCache := cache.NewRedisInteractCache(cmdable)
+	interactCache := cache2.NewRedisInteractCache(cmdable)
 	loggerV1 := InitLog()
-	interactRepository := repository.NewCachedInteractRepository(interactDAO, interactCache, loggerV1)
-	interactService := service.NewInteractService(interactRepository, loggerV1)
+	interactRepository := repository2.NewCachedInteractRepository(interactDAO, interactCache, loggerV1)
+	interactService := service2.NewInteractService(interactRepository, loggerV1)
 	return interactService
 }
 
@@ -72,13 +76,13 @@ func InitArticleHandler(artDAO article.ArticleDAO) *web.ArticleHandler {
 	loggerV1 := InitLog()
 	articleRepository := article2.NewCachedArticleRepository(userRepository, artDAO, articleCache, loggerV1)
 	client := InitKafka()
-	syncProducer := ioc.InitSyncProducer(client)
+	syncProducer := InitSyncProducer(client)
 	producer := article3.NewSaramaSyncProducer(syncProducer)
 	articleService := service.NewArticleService(articleRepository, loggerV1, producer)
-	interactDAO := dao.NewGORMInteractDAO(gormDB)
-	interactCache := cache.NewRedisInteractCache(cmdable)
-	interactRepository := repository.NewCachedInteractRepository(interactDAO, interactCache, loggerV1)
-	interactService := service.NewInteractService(interactRepository, loggerV1)
+	interactDAO := dao2.NewGORMInteractDAO(gormDB)
+	interactCache := cache2.NewRedisInteractCache(cmdable)
+	interactRepository := repository2.NewCachedInteractRepository(interactDAO, interactCache, loggerV1)
+	interactService := service2.NewInteractService(interactRepository, loggerV1)
 	articleHandler := web.NewArticleHandler(articleService, interactService, loggerV1)
 	return articleHandler
 }
@@ -111,10 +115,10 @@ func InitWebServer() *gin.Engine {
 
 var (
 	thirdPS = wire.NewSet(InitTestDB, InitRedis, InitLog,
-		InitKafka, ioc.InitSyncProducer, article3.NewSaramaSyncProducer)
+		InitKafka, InitSyncProducer, article3.NewSaramaSyncProducer)
 	userSvcPS     = wire.NewSet(dao.NewUserDAO, cache.NewUserCache, repository.NewUserRepository, service.NewUserService)
 	codeSvcPS     = wire.NewSet(cache.NewCodeCache, repository.NewCodeRepository, ioc.InitSmsService, service.NewCodeService)
 	articleSvcPS  = wire.NewSet(article.NewGORMArticleDAO, cache.NewRedisArticleCache, article2.NewCachedArticleRepository, service.NewArticleService)
 	wechatSvcPS   = wire.NewSet(ioc.InitWechatService)
-	interactSvcPS = wire.NewSet(dao.NewGORMInteractDAO, cache.NewRedisInteractCache, repository.NewCachedInteractRepository, service.NewInteractService)
+	interactSvcPS = wire.NewSet(dao2.NewGORMInteractDAO, cache2.NewRedisInteractCache, repository2.NewCachedInteractRepository, service2.NewInteractService)
 )

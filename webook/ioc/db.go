@@ -11,6 +11,7 @@ import (
 	"gorm.io/plugin/opentelemetry/tracing"
 	"gorm.io/plugin/prometheus"
 
+	dao2 "basic-go/webook/interact/repository/dao"
 	"basic-go/webook/internal/repository/dao"
 	"basic-go/webook/pkg/logger"
 )
@@ -67,6 +68,11 @@ func InitDB(l logger.LoggerV1) *gorm.DB {
 	if err != nil {
 		panic(err)
 	}
+	err = dao2.InitTables(db)
+	if err != nil {
+		panic(err)
+	}
+
 	return db
 }
 
