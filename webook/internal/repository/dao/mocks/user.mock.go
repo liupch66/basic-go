@@ -10,8 +10,8 @@
 package daomocks
 
 import (
-	dao "github.com/liupch66/basic-go/webook/internal/repository/dao"
 	context "context"
+	dao "github.com/liupch66/basic-go/webook/internal/repository/dao"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"

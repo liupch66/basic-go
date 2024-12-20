@@ -7,6 +7,8 @@
 package startup
 
 import (
+	"github.com/gin-gonic/gin"
+	"github.com/google/wire"
 	repository2 "github.com/liupch66/basic-go/webook/interact/repository"
 	cache2 "github.com/liupch66/basic-go/webook/interact/repository/cache"
 	dao2 "github.com/liupch66/basic-go/webook/interact/repository/dao"
@@ -22,8 +24,6 @@ import (
 	"github.com/liupch66/basic-go/webook/internal/web"
 	"github.com/liupch66/basic-go/webook/internal/web/jwt"
 	"github.com/liupch66/basic-go/webook/ioc"
-	"github.com/gin-gonic/gin"
-	"github.com/google/wire"
 )
 
 // Injectors from wire.go:

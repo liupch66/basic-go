@@ -1,0 +1,37 @@
+#version: v1
+#managed:
+#  enabled: true
+#  go_package_prefix:
+#    default: github.com/liupch66/basic-go/webook/api/proto/gen
+#plugins:
+#  - plugin: buf.build/protocolbuffers/go
+#    out: webook/api/proto/gen
+#    opt: paths=source_relative
+#  - plugin: buf.build/grpc/go
+#    out: webook/api/proto/gen
+#    opt:
+#      - paths=source_relative
+
+#version: v2
+#plugins:
+#  - local: protoc-gen-go
+#    out: webook/api/proto/gen
+#    opt: paths=source_relative
+#  - local: protoc-gen-go-grpc
+#    out: webook/api/proto/gen
+#    opt: paths=source_relative
+
+version: v2
+managed:
+  enabled: true
+  override:
+    - file_option: go_package_prefix
+      value: github.com/liupch66/basic-go/webook/api/proto/gen
+plugins:
+  # Use protoc-gen-go at v1.28.1，可指定版本，不指定就是最新版本
+  - remote: buf.build/protocolbuffers/go
+    out: webook/api/proto/gen
+    opt: paths=source_relative
+  - remote: buf.build/grpc/go
+    out: webook/api/proto/gen
+    opt: paths=source_relative

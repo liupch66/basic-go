@@ -7,6 +7,7 @@
 package main
 
 import (
+	"github.com/google/wire"
 	"github.com/liupch66/basic-go/webook/interact/events"
 	repository2 "github.com/liupch66/basic-go/webook/interact/repository"
 	cache2 "github.com/liupch66/basic-go/webook/interact/repository/cache"
@@ -22,7 +23,6 @@ import (
 	"github.com/liupch66/basic-go/webook/internal/web"
 	"github.com/liupch66/basic-go/webook/internal/web/jwt"
 	"github.com/liupch66/basic-go/webook/ioc"
-	"github.com/google/wire"
 )
 
 import (

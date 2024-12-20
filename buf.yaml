@@ -1,0 +1,13 @@
+# For details on buf.yaml configuration, visit https://buf.build/docs/configuration/v2/buf-yaml
+version: v2
+# 定义工作区中的模块
+modules:
+  - path: webook/api/proto
+# 静态检查
+lint:
+  use:
+    - STANDARD
+# 配置破坏性变更检查（Breaking Changes Check）,检查在 .proto 文件中做出的变更是否可能破坏现有的 API 向后兼容性
+breaking:
+  use:
+    - FILE

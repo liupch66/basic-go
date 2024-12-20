@@ -74,6 +74,7 @@ func (cache *RedisInteractCache) Get(ctx context.Context, biz string, bizId int6
 	likeCnt, _ := strconv.ParseInt(data[argLikeCnt], 10, 64)
 	collectCnt, _ := strconv.ParseInt(data[argCollectCnt], 10, 64)
 	return domain.Interact{
+		Biz:        biz,
 		BizId:      bizId,
 		ReadCnt:    readCnt,
 		LikeCnt:    likeCnt,

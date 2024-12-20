@@ -10,8 +10,8 @@
 package artRepomocks
 
 import (
-	domain "github.com/liupch66/basic-go/webook/internal/domain"
 	context "context"
+	domain "github.com/liupch66/basic-go/webook/internal/domain"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"

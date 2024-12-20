@@ -86,9 +86,9 @@ func (mr *MockInteractServiceMockRecorder) Get(ctx, biz, bizId, uid any) *gomock
 }
 
 // GetByIds mocks base method.
-func (m *MockInteractService) GetByIds(ctx context.Context, biz string, ids []int64) (map[int64]domain.Interact, error) {
+func (m *MockInteractService) GetByIds(ctx context.Context, biz string, bizIds []int64) (map[int64]domain.Interact, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByIds", ctx, biz, ids)
+	ret := m.ctrl.Call(m, "GetByIds", ctx, biz, bizIds)
 	ret0, _ := ret[0].(map[int64]domain.Interact)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -115,9 +115,9 @@ func (mr *MockInteractServiceMockRecorder) IncrReadCnt(ctx, biz, bizId any) *gom
 }
 
 // Like mocks base method.
-func (m *MockInteractService) Like(ctx context.Context, biz string, id, uid int64) error {
+func (m *MockInteractService) Like(ctx context.Context, biz string, bizId int64, uid int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Like", ctx, biz, id, uid)
+	ret := m.ctrl.Call(m, "Like", ctx, biz, bizId, uid)
 	ret0, _ := ret[0].(error)
 	return ret0
 }

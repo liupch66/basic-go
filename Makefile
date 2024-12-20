@@ -18,3 +18,7 @@ mock:
 	@mockgen -package=smsmocks -source=./webook/internal/service/sms/types.go -destination=./webook/internal/service/sms/mocks/svc.mock.go
 	@mockgen -package=limitmocks -source=./webook/pkg/ratelimit/types.go -destination=./webook/pkg/ratelimit/mocks/limit.mock.go
 	@go mod tidy
+
+.PHONY: grpc
+grpc:
+	@buf generate

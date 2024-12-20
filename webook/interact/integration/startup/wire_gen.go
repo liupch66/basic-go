@@ -7,11 +7,12 @@
 package startup
 
 import (
+	"github.com/google/wire"
+	"github.com/liupch66/basic-go/webook/interact/grpc"
 	"github.com/liupch66/basic-go/webook/interact/repository"
 	"github.com/liupch66/basic-go/webook/interact/repository/cache"
 	"github.com/liupch66/basic-go/webook/interact/repository/dao"
 	"github.com/liupch66/basic-go/webook/interact/service"
-	"github.com/google/wire"
 )
 
 // Injectors from wire.go:
@@ -25,6 +26,18 @@ func InitInteractService() service.InteractService {
 	interactRepository := repository.NewCachedInteractRepository(interactDAO, interactCache, loggerV1)
 	interactService := service.NewInteractService(interactRepository, loggerV1)
 	return interactService
+}
+
+func InitGrpcServer() *grpc.InteractServiceServer {
+	gormDB := InitTestDB()
+	interactDAO := dao.NewGORMInteractDAO(gormDB)
+	cmdable := InitRedis()
+	interactCache := cache.NewRedisInteractCache(cmdable)
+	loggerV1 := InitLog()
+	interactRepository := repository.NewCachedInteractRepository(interactDAO, interactCache, loggerV1)
+	interactService := service.NewInteractService(interactRepository, loggerV1)
+	interactServiceServer := grpc.NewInteractServiceServer(interactService)
+	return interactServiceServer
 }
 
 // wire.go:

@@ -22,7 +22,7 @@ type InteractRepository interface {
 	Liked(ctx context.Context, biz string, bizId, uid int64) (bool, error)
 	Collected(ctx context.Context, biz string, bizId, uid int64) (bool, error)
 	BatchIncrReadCnt(ctx context.Context, biz string, bizIds []int64) error
-	GetByIds(ctx context.Context, biz string, ids []int64) ([]domain.Interact, error)
+	GetByIds(ctx context.Context, biz string, bizIds []int64) ([]domain.Interact, error)
 }
 
 type CachedInteractRepository struct {
@@ -81,10 +81,13 @@ func (repo *CachedInteractRepository) Get(ctx context.Context, biz string, bizId
 		return domain.Interact{}, err
 	}
 	inter = domain.Interact{
+		Biz:        interEntity.Biz,
 		BizId:      interEntity.BizId,
 		ReadCnt:    interEntity.ReadCnt,
 		LikeCnt:    interEntity.LikeCnt,
 		CollectCnt: interEntity.CollectCnt,
+		Liked:      inter.Liked,
+		Collected:  inter.Collected,
 	}
 	if er := repo.cache.Set(ctx, biz, bizId, inter); er != nil {
 		// 可以容忍的错误
@@ -123,13 +126,14 @@ func (repo *CachedInteractRepository) BatchIncrReadCnt(ctx context.Context, biz 
 	return repo.dao.BatchIncrReadCnt(ctx, biz, bizIds)
 }
 
-func (repo *CachedInteractRepository) GetByIds(ctx context.Context, biz string, ids []int64) ([]domain.Interact, error) {
-	interEntity, err := repo.dao.GetByIds(ctx, biz, ids)
+func (repo *CachedInteractRepository) GetByIds(ctx context.Context, biz string, bizIds []int64) ([]domain.Interact, error) {
+	interEntity, err := repo.dao.GetByIds(ctx, biz, bizIds)
 	if err != nil {
 		return nil, err
 	}
 	return slice.Map(interEntity, func(idx int, src dao.Interact) domain.Interact {
 		return domain.Interact{
+			Biz:        interEntity[idx].Biz,
 			BizId:      interEntity[idx].BizId,
 			ReadCnt:    interEntity[idx].ReadCnt,
 			LikeCnt:    interEntity[idx].LikeCnt,
