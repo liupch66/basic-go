@@ -8,7 +8,7 @@ import (
 
 	"github.com/ecodeclub/ekit/queue"
 
-	service2 "github.com/liupch66/basic-go/webook/interact/service"
+	interactv1 "github.com/liupch66/basic-go/webook/api/proto/gen/interact/v1"
 	"github.com/liupch66/basic-go/webook/internal/domain"
 	"github.com/liupch66/basic-go/webook/internal/repository"
 )
@@ -21,7 +21,7 @@ type RankService interface {
 
 type BatchRankService struct {
 	artSvc    ArticleService
-	interSvc  service2.InteractService
+	interSvc  interactv1.InteractServiceClient
 	repo      repository.RankRepository
 	batchSize int
 	n         int
@@ -29,7 +29,7 @@ type BatchRankService struct {
 	scoreFunc func(utime time.Time, likeCnt int64) float64
 }
 
-func NewBatchRankService(artSvc ArticleService, interSvc service2.InteractService, repo repository.RankRepository) RankService {
+func NewBatchRankService(artSvc ArticleService, interSvc interactv1.InteractServiceClient, repo repository.RankRepository) RankService {
 	return &BatchRankService{
 		artSvc:    artSvc,
 		interSvc:  interSvc,
@@ -94,7 +94,7 @@ func (svc *BatchRankService) topN(ctx context.Context) ([]domain.Article, error)
 		}
 
 		// 根据文章 ids 再拿对应的点赞数据，这里拿到的结果是一个 map
-		inters, err := svc.interSvc.GetByIds(ctx, "article", ids)
+		inters, err := svc.interSvc.GetByIds(ctx, &interactv1.GetByIdsRequest{Biz: "article", BizIds: ids})
 		if err != nil {
 			return nil, err
 		}
@@ -106,7 +106,7 @@ func (svc *BatchRankService) topN(ctx context.Context) ([]domain.Article, error)
 			// 	// 都没有点赞数据，肯定不是热度榜
 			// 	continue
 			// }
-			ele := Element{art: art, score: svc.scoreFunc(art.Utime, inters[art.Id].LikeCnt)}
+			ele := Element{art: art, score: svc.scoreFunc(art.Utime, inters.Interacts[art.Id].LikeCnt)}
 			err = que.Enqueue(ele)
 			// topN 的 queue 已经满了
 			if errors.Is(err, queue.ErrOutOfCapacity) {

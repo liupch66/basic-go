@@ -12,7 +12,7 @@ import (
 	"github.com/liupch66/basic-go/webook/interact/service"
 )
 
-// InteractServiceServer 这里只是把 service 包装成一个 grpc 而已，核心逻辑一定是在 service 里面，不关心上面是用 grpc, http 什么的
+// InteractServiceServer 这里只是把 service 包装成一个 gRPC 而已，核心逻辑一定是在 service 里面，不关心上面是用 grpc, http 什么的
 type InteractServiceServer struct {
 	interactv1.UnimplementedInteractServiceServer
 	svc service.InteractService
@@ -54,7 +54,7 @@ func (i *InteractServiceServer) CancelLike(ctx context.Context, request *interac
 }
 
 func (i *InteractServiceServer) Collect(ctx context.Context, request *interactv1.CollectRequest) (*interactv1.CollectResponse, error) {
-	err := i.svc.Collect(ctx, request.GetBiz(), request.GetBidId(), request.GetUid(), request.GetCid())
+	err := i.svc.Collect(ctx, request.GetBiz(), request.GetBidId(), request.GetCid(), request.GetUid())
 	return &interactv1.CollectResponse{}, err
 }
 

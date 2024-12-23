@@ -1,10 +1,19 @@
 #db.mysql:
 db:
   dsn: "root:root@tcp(localhost:3306)/webook"
+
 redis:
   addr: "localhost:6379"
   password: ""
   db: 1
+
 kafka:
   addrs:
     - "localhost:9094"
+
+grpc:
+  client:
+    interact:
+      addr: "localhost:8090"
+      secure: false
+      threshold: 100

@@ -24,7 +24,7 @@ import (
 
 var rankServiceSet = wire.NewSet(
 	cache.NewRedisRankCache,
-	cache.NewLocalRankCache,
+	cache.NewRankLocalCache,
 	repository.NewCachedRankRepository,
 	service.NewBatchRankService,
 )
@@ -42,7 +42,7 @@ func InitApp() *App {
 		repository2.NewCachedInteractRepository,
 
 		service.NewUserService, service.NewCodeService, ioc.InitSmsService, ioc.InitWechatService,
-		service.NewArticleService, service2.NewInteractService,
+		service.NewArticleService, service2.NewInteractService, ioc.InitInteractGRPCClient,
 
 		rankServiceSet,
 		ioc.InitRankJob,

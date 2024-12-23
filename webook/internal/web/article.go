@@ -10,8 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/sync/errgroup"
 
-	domain2 "github.com/liupch66/basic-go/webook/interact/domain"
-	service2 "github.com/liupch66/basic-go/webook/interact/service"
+	interactv1 "github.com/liupch66/basic-go/webook/api/proto/gen/interact/v1"
 	"github.com/liupch66/basic-go/webook/internal/domain"
 	"github.com/liupch66/basic-go/webook/internal/service"
 	"github.com/liupch66/basic-go/webook/internal/web/jwt"
@@ -23,12 +22,12 @@ var _ handler = (*ArticleHandler)(nil)
 
 type ArticleHandler struct {
 	svc      service.ArticleService
-	interSvc service2.InteractService
+	interSvc interactv1.InteractServiceClient
 	l        logger.LoggerV1
 	biz      string
 }
 
-func NewArticleHandler(svc service.ArticleService, interSvc service2.InteractService, l logger.LoggerV1) *ArticleHandler {
+func NewArticleHandler(svc service.ArticleService, interSvc interactv1.InteractServiceClient, l logger.LoggerV1) *ArticleHandler {
 	return &ArticleHandler{svc: svc, interSvc: interSvc, l: l, biz: "article"}
 }
 
@@ -200,9 +199,9 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context, uc jwt.UserClaims) (Result,
 	// 接下来查询文章详情和阅读点赞收藏详情可以并行，也就是开两个 goroutine，但是最终的 article_vo 要等这两个执行完
 	// 所以可以用 WaitGroup，但是要各自处理错误，可以改进成 ErrGroup
 	var (
-		eg    errgroup.Group
-		art   domain.Article
-		inter domain2.Interact
+		eg      errgroup.Group
+		art     domain.Article
+		getResp *interactv1.GetResponse
 	)
 
 	// goroutine 里面最好不要复用外面的 error，防止不清楚最后的 error 到底是哪个
@@ -214,15 +213,11 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context, uc jwt.UserClaims) (Result,
 
 	eg.Go(func() error {
 		var er error
-		inter, er = h.interSvc.Get(ctx, h.biz, id, uc.UserId)
-		// 可以容忍错误的写法
-		// if er != nil {
-		// 	h.l.Error("获取阅读点赞收藏详情失败", logger.Int64("article_id", id),
-		// 		logger.Int64("user_id", uc.UserId), logger.Error(er))
-		// }
-		// return nil
-
-		// 不容忍错误的写法
+		getResp, er = h.interSvc.Get(ctx, &interactv1.GetRequest{
+			Biz:   h.biz,
+			BidId: id,
+			Uid:   uc.UserId,
+		})
 		return er
 	})
 
@@ -234,11 +229,15 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context, uc jwt.UserClaims) (Result,
 	// 增加阅读计数
 	// 直接异步操作，在确定我们获取到了数据之后再来操作
 	go func() {
-		er := h.interSvc.IncrReadCnt(ctx, h.biz, id)
+		_, er := h.interSvc.IncrReadCnt(ctx, &interactv1.IncrReadCntRequest{
+			Biz:   h.biz,
+			BidId: id,
+		})
 		if er != nil {
 			h.l.Error("增加阅读计数失败", logger.Error(er), logger.Int64("article_id", art.Id))
 		}
 	}()
+	inter := getResp.Interact
 	return Result{Data: ArticleVO{
 		Id:    id,
 		Title: art.Title,
@@ -259,9 +258,17 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context, uc jwt.UserClaims) (Result,
 func (h *ArticleHandler) Like(ctx *gin.Context, req LikeReq, uc jwt.UserClaims) (Result, error) {
 	var err error
 	if req.Like {
-		err = h.interSvc.Like(ctx, h.biz, req.Id, uc.UserId)
+		_, err = h.interSvc.Like(ctx, &interactv1.LikeRequest{
+			Biz:   h.biz,
+			BidId: req.Id,
+			Uid:   uc.UserId,
+		})
 	} else {
-		err = h.interSvc.CancelLike(ctx, h.biz, req.Id, uc.UserId)
+		_, err = h.interSvc.CancelLike(ctx, &interactv1.CancelLikeRequest{
+			Biz:   h.biz,
+			BidId: req.Id,
+			Uid:   uc.UserId,
+		})
 	}
 	if err != nil {
 		h.l.Error("读者点赞或取消点赞失败", logger.Int64("article_id", req.Id),
@@ -272,7 +279,12 @@ func (h *ArticleHandler) Like(ctx *gin.Context, req LikeReq, uc jwt.UserClaims) 
 }
 
 func (h *ArticleHandler) Collect(ctx *gin.Context, req CollectReq, uc jwt.UserClaims) (Result, error) {
-	err := h.interSvc.Collect(ctx, h.biz, req.Id, req.Cid, uc.UserId)
+	_, err := h.interSvc.Collect(ctx, &interactv1.CollectRequest{
+		Biz:   h.biz,
+		BidId: req.Id,
+		Cid:   req.Cid,
+		Uid:   uc.UserId,
+	})
 	if err != nil {
 		h.l.Error("读者收藏失败", logger.Int64("article_id", req.Id),
 			logger.Int64("user_id", uc.UserId), logger.Error(err))

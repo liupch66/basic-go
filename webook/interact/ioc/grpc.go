@@ -8,7 +8,7 @@ import (
 	"github.com/liupch66/basic-go/webook/pkg/grpcx"
 )
 
-func InitGrpcxServer(interactSrv *igrpc.InteractServiceServer) *grpcx.Server {
+func InitGRPCxServer(interactSrv *igrpc.InteractServiceServer) *grpcx.Server {
 	type Config struct {
 		Addr string `yaml:"addr"`
 	}

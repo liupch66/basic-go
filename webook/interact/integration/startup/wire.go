@@ -25,7 +25,7 @@ func InitInteractService() service.InteractService {
 	return service.NewInteractService(nil, nil)
 }
 
-func InitGrpcServer() *grpc.InteractServiceServer {
+func InitGRPCServer() *grpc.InteractServiceServer {
 	wire.Build(thirdPS, interactSvcPS, grpc.NewInteractServiceServer)
 	return new(grpc.InteractServiceServer)
 }

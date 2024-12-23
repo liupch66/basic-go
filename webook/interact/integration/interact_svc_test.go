@@ -26,7 +26,7 @@ type InteractTestSuite struct {
 func (s *InteractTestSuite) SetupSuite() {
 	s.db = startup.InitTestDB()
 	s.rdb = startup.InitRedis()
-	s.server = startup.InitGrpcServer()
+	s.server = startup.InitGRPCServer()
 }
 
 func (s *InteractTestSuite) TearDownTest() {

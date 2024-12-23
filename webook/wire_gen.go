@@ -60,14 +60,15 @@ func InitApp() *App {
 	interactCache := cache2.NewRedisInteractCache(cmdable)
 	interactRepository := repository2.NewCachedInteractRepository(interactDAO, interactCache, loggerV1)
 	interactService := service2.NewInteractService(interactRepository, loggerV1)
-	articleHandler := web.NewArticleHandler(articleService, interactService, loggerV1)
+	interactServiceClient := ioc.InitInteractGRPCClient(interactService)
+	articleHandler := web.NewArticleHandler(articleService, interactServiceClient, loggerV1)
 	engine := ioc.InitWebServer(v, userHandler, oAuth2WechatHandler, articleHandler)
 	interactReadEventBatchConsumer := events.NewInteractReadEventBatchConsumer(client, interactRepository, loggerV1)
 	v2 := ioc.NewConsumers(interactReadEventBatchConsumer)
-	localRankCache := cache.NewLocalRankCache()
+	localRankCache := cache.NewRankLocalCache()
 	redisRankCache := cache.NewRedisRankCache(cmdable)
 	rankRepository := repository.NewCachedRankRepository(localRankCache, redisRankCache)
-	rankService := service.NewBatchRankService(articleService, interactService, rankRepository)
+	rankService := service.NewBatchRankService(articleService, interactServiceClient, rankRepository)
 	rlockClient := ioc.InitRLockClient(cmdable)
 	rankJob := ioc.InitRankJob(rankService, rlockClient, loggerV1)
 	cron := ioc.InitJobs(loggerV1, rankJob)
@@ -81,4 +82,4 @@ func InitApp() *App {
 
 // wire.go:
 
-var rankServiceSet = wire.NewSet(cache.NewRedisRankCache, cache.NewLocalRankCache, repository.NewCachedRankRepository, service.NewBatchRankService)
+var rankServiceSet = wire.NewSet(cache.NewRedisRankCache, cache.NewRankLocalCache, repository.NewCachedRankRepository, service.NewBatchRankService)

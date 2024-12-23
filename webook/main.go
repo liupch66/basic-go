@@ -21,8 +21,6 @@ func main() {
 	closeFunc := ioc.InitOtel()
 
 	app := InitApp()
-
-	// 坑，这里不能放到 server.Run 后面，不然没用
 	for _, consumer := range app.consumers {
 		err := consumer.Start()
 		if err != nil {

@@ -27,6 +27,7 @@ const (
 	InteractService_GetByIds_FullMethodName    = "/interact.v1.InteractService/GetByIds"
 )
 
+//go:generate mockgen -package=mockinteract -source=interact_grpc.pb.go -destination=mocks/mock_interact_grpc.pb.go InteractServiceClient
 // InteractServiceClient is the client API for InteractService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.

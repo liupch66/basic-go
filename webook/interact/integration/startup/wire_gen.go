@@ -28,7 +28,7 @@ func InitInteractService() service.InteractService {
 	return interactService
 }
 
-func InitGrpcServer() *grpc.InteractServiceServer {
+func InitGRPCServer() *grpc.InteractServiceServer {
 	gormDB := InitTestDB()
 	interactDAO := dao.NewGORMInteractDAO(gormDB)
 	cmdable := InitRedis()

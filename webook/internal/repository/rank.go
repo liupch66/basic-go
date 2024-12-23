@@ -17,11 +17,11 @@ type CachedRankRepository struct {
 	// cache cache.RankCache
 
 	// 这里加入本地缓存，换成具体实现，可读性强点，但对测试不友好，因为没有面向接口编程
-	local *cache.LocalRankCache
+	local *cache.RankLocalCache
 	redis *cache.RedisRankCache
 }
 
-func NewCachedRankRepository(local *cache.LocalRankCache, redis *cache.RedisRankCache) RankRepository {
+func NewCachedRankRepository(local *cache.RankLocalCache, redis *cache.RedisRankCache) RankRepository {
 	return &CachedRankRepository{local: local, redis: redis}
 }
 

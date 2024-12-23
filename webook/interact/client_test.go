@@ -11,8 +11,8 @@ import (
 	interactv1 "github.com/liupch66/basic-go/webook/api/proto/gen/interact/v1"
 )
 
-// 测试 grpc 的 server 端是否启动
-func TestGrpcClient(t *testing.T) {
+// 测试 gRPC 的 server 端是否启动
+func TestGRPCClient(t *testing.T) {
 	cc, err := grpc.NewClient(":8090", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	require.NoError(t, err)
 	client := interactv1.NewInteractServiceClient(cc)

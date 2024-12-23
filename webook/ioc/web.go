@@ -22,6 +22,8 @@ import (
 func InitWebServer(middlewares []gin.HandlerFunc, userHdl *web.UserHandler,
 	oauth2WechatHal *web.OAuth2WechatHandler, articleHdl *web.ArticleHandler) *gin.Engine {
 	server := gin.Default()
+	// 打开这个才能链路追踪
+	// server.ContextWithFallback = true
 	server.Use(middlewares...)
 	userHdl.RegisterRoutes(server)
 	oauth2WechatHal.RegisterRoutes(server)

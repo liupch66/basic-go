@@ -30,7 +30,7 @@ func InitApp() *app {
 		thirdPartyProvider, interactServiceProvider,
 		events.NewInteractReadEventConsumer, ioc.NewConsumers,
 		grpc.NewInteractServiceServer,
-		ioc.InitGrpcxServer,
+		ioc.InitGRPCxServer,
 		wire.Struct(new(app), "*"),
 	)
 	return new(app)

@@ -16,7 +16,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/liupch66/basic-go/webook/internal/domain"
-	"github.com/liupch66/basic-go/webook/internal/errs"
 	"github.com/liupch66/basic-go/webook/internal/service"
 	ijwt "github.com/liupch66/basic-go/webook/internal/web/jwt"
 	"github.com/liupch66/basic-go/webook/pkg/ginx"
@@ -61,8 +60,8 @@ func (u *UserHandler) RegisterRoutes(server *gin.Engine) {
 		// session 机制
 		// ug.POST("/login", u.Login)
 		// jwt 机制
-		// ug.POST("/login", u.LoginJWT)
-		ug.POST("/login", ginx.WrapReqAndClaims[LoginReq, ijwt.UserClaims](u.LoginJWT))
+		ug.POST("/login", u.LoginJWT)
+		// ug.POST("/login", ginx.WrapReq[LoginReq](u.LoginJWT))
 		ug.POST("/edit", u.Edit)
 		// ug.GET("/profile", u.Profile)
 		ug.GET("/profile", u.ProfileJWT)
@@ -124,6 +123,8 @@ func (u *UserHandler) Signup(ctx *gin.Context) {
 	if err != nil {
 		// 单独区分邮箱重复错误
 		if errors.Is(err, service.ErrUserDuplicate) {
+			// 这里有个坑：要不直接用 ctx.Request.Context()
+			// 要想直接用 ctx， 在初始化 gin.Default 的时候要打开 server.ContextWithFallback = true
 			span := trace.SpanFromContext(ctx.Request.Context())
 			span.AddEvent("邮件冲突", trace.WithAttributes(attribute.String("test_key", "test_value")))
 			ctx.String(http.StatusOK, "邮箱重复，请换一个邮箱")
@@ -172,54 +173,54 @@ func (u *UserHandler) Login(ctx *gin.Context) {
 	ctx.String(http.StatusOK, "登录成功")
 }
 
-// func (u *UserHandler) LoginJWT(ctx *gin.Context) {
-// 	type LoginReq struct {
-// 		Email    string `json:"email"`
-// 		Password string `json:"password"`
-// 	}
-// 	var req LoginReq
-// 	if err := ctx.Bind(&req); err != nil {
-// 		return
-// 	}
-// 	user, err := u.userSvc.Login(ctx, req.Email, req.Password)
-// 	if err != nil {
-// 		if errors.Is(err, service.ErrInvalidEmailOrPassword) {
-// 			ctx.String(http.StatusOK, "邮箱或密码不对")
-// 			return
-// 		}
-// 		ctx.String(http.StatusOK, "系统错误")
-// 		return
-// 	}
-// 	// 设置登录态
-// 	if err = u.SetLoginToken(ctx, user.Id); err != nil {
-// 		ctx.String(http.StatusOK, "系统错误")
-// 		return
-// 	}
-//
-// 	ctx.String(http.StatusOK, "登录成功")
-// }
-
-type LoginReq struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-func (u *UserHandler) LoginJWT(ctx *gin.Context, req LoginReq, uc ijwt.UserClaims) (Result, error) {
+func (u *UserHandler) LoginJWT(ctx *gin.Context) {
+	type LoginReq struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	var req LoginReq
+	if err := ctx.Bind(&req); err != nil {
+		return
+	}
 	user, err := u.userSvc.Login(ctx, req.Email, req.Password)
-	if errors.Is(err, service.ErrInvalidEmailOrPassword) {
-		return Result{Code: errs.UserInvalidOrPassword, Msg: "用户或密码不对"}, err
-	}
 	if err != nil {
-		return Result{Code: 5, Msg: "系统错误"}, err
+		if errors.Is(err, service.ErrInvalidEmailOrPassword) {
+			ctx.String(http.StatusOK, "邮箱或密码不对")
+			return
+		}
+		ctx.String(http.StatusOK, "系统错误")
+		return
 	}
-
 	// 设置登录态
 	if err = u.SetLoginToken(ctx, user.Id); err != nil {
-		return Result{Code: 5, Msg: "系统错误"}, err
+		ctx.String(http.StatusOK, "系统错误")
+		return
 	}
 
-	return Result{Msg: "登录成功"}, nil
+	ctx.String(http.StatusOK, "登录成功")
 }
+
+// type LoginReq struct {
+// 	Email    string `json:"email"`
+// 	Password string `json:"password"`
+// }
+//
+// func (u *UserHandler) LoginJWT(ctx *gin.Context, req LoginReq) (Result, error) {
+// 	user, err := u.userSvc.Login(ctx, req.Email, req.Password)
+// 	if errors.Is(err, service.ErrInvalidEmailOrPassword) {
+// 		return Result{Code: errs.UserInvalidOrPassword, Msg: "用户或密码不对"}, err
+// 	}
+// 	if err != nil {
+// 		return Result{Code: 5, Msg: "系统错误"}, err
+// 	}
+//
+// 	// 设置登录态
+// 	if err = u.SetLoginToken(ctx, user.Id); err != nil {
+// 		return Result{Code: 5, Msg: "系统错误"}, err
+// 	}
+//
+// 	return Result{Msg: "登录成功"}, nil
+// }
 
 func (u *UserHandler) Edit(ctx *gin.Context) {
 	type Req struct {

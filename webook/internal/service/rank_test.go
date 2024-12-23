@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	domain2 "github.com/liupch66/basic-go/webook/interact/domain"
-	service2 "github.com/liupch66/basic-go/webook/interact/service"
+	interactv1 "github.com/liupch66/basic-go/webook/api/proto/gen/interact/v1"
+	mockinteract "github.com/liupch66/basic-go/webook/api/proto/gen/interact/v1/mocks"
 	"github.com/liupch66/basic-go/webook/internal/domain"
 	svcmocks "github.com/liupch66/basic-go/webook/internal/service/mocks"
 )
@@ -18,15 +18,15 @@ func TestBatchRankService_TopN(t *testing.T) {
 	now := time.Now()
 	testCases := []struct {
 		name         string
-		mock         func(ctrl *gomock.Controller) (ArticleService, service2.InteractService)
+		mock         func(ctrl *gomock.Controller) (ArticleService, interactv1.InteractServiceClient)
 		expectedErr  error
 		expectedArts []domain.Article
 	}{
 		{
 			name: "计算成功",
-			mock: func(ctrl *gomock.Controller) (ArticleService, service2.InteractService) {
+			mock: func(ctrl *gomock.Controller) (ArticleService, interactv1.InteractServiceClient) {
 				artSvc := svcmocks.NewMockArticleService(ctrl)
-				interSvc := svcmocks.NewMockInteractService(ctrl)
+				interSvc := mockinteract.NewMockInteractServiceClient(ctrl)
 				// 取第一批
 				artSvc.EXPECT().ListPub(gomock.Any(), gomock.Any(), 0, 3).
 					Return([]domain.Article{
@@ -34,11 +34,13 @@ func TestBatchRankService_TopN(t *testing.T) {
 						{Id: 2, Ctime: now, Utime: now},
 						{Id: 3, Ctime: now, Utime: now},
 					}, nil)
-				interSvc.EXPECT().GetByIds(gomock.Any(), "article", []int64{1, 2, 3}).
-					Return(map[int64]domain2.Interact{
-						1: domain2.Interact{BizId: 1, LikeCnt: 1},
-						2: domain2.Interact{BizId: 2, LikeCnt: 2},
-						3: domain2.Interact{BizId: 3, LikeCnt: 3},
+				interSvc.EXPECT().GetByIds(gomock.Any(), gomock.Any()).
+					Return(&interactv1.GetByIdsResponse{
+						Interacts: map[int64]*interactv1.Interact{
+							1: {BizId: 1, LikeCnt: 1},
+							2: {BizId: 2, LikeCnt: 2},
+							3: {BizId: 3, LikeCnt: 3},
+						},
 					}, nil)
 
 				// 取第二批，全被第一批取完了
