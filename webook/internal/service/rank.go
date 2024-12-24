@@ -80,6 +80,7 @@ func (svc *BatchRankService) topN(ctx context.Context) ([]domain.Article, error)
 		}
 
 		// 这是刚好上一批取满而且刚好文章数据库取完，那还会进入这个批次。此时直接退出就行了
+		// 应该也可以用 errors.Is(err, gorm.ErrRecordNotFound) 判断
 		if len(arts) == 0 {
 			break
 		}

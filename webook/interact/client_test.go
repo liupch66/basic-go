@@ -18,7 +18,7 @@ func TestGRPCClient(t *testing.T) {
 	client := interactv1.NewInteractServiceClient(cc)
 	resp, err := client.Get(context.Background(), &interactv1.GetRequest{
 		Biz:   "test",
-		BidId: 4,
+		BidId: 1,
 		Uid:   123,
 	})
 	require.NoError(t, err)
