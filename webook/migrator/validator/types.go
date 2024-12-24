@@ -7,6 +7,7 @@ import (
 
 	"github.com/ecodeclub/ekit/slice"
 	"go.uber.org/atomic"
+	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
 
 	"github.com/liupch66/basic-go/webook/migrator"
@@ -49,9 +50,17 @@ func NewValidator[T migrator.Entity](base *gorm.DB, target *gorm.DB, direction s
 	}
 }
 
-func (v *Validator[T]) Validate(ctx context.Context) {
-	v.baseToTarget(ctx)
-	v.targetToBase(ctx)
+func (v *Validator[T]) Validate(ctx context.Context) error {
+	var eg errgroup.Group
+	eg.Go(func() error {
+		v.baseToTarget(ctx)
+		return nil
+	})
+	eg.Go(func() error {
+		v.targetToBase(ctx)
+		return nil
+	})
+	return eg.Wait()
 }
 
 // baseToTarget 执行 base 到 target 的验证，找出 dst 中不一致和没有的数据
