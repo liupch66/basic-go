@@ -12,7 +12,7 @@ import (
 )
 
 // L 使用包变量
-var L logger.LoggerV1
+var L logger.LoggerV1 = logger.NewNopLogger()
 
 var vector *prometheus.CounterVec
 
@@ -26,6 +26,18 @@ type Result struct {
 	Code int    `json:"code"`
 	Msg  string `json:"msg"`
 	Data any    `json:"data"`
+}
+
+func Wrap(fn func(ctx *gin.Context) (Result, error)) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		res, err := fn(ctx)
+		if err != nil {
+			L.Error("处理业务逻辑出错", logger.String("path", ctx.Request.URL.Path),
+				logger.String("route", ctx.FullPath()), logger.Error(err))
+		}
+		vector.WithLabelValues(strconv.Itoa(res.Code)).Inc()
+		ctx.JSON(http.StatusOK, res)
+	}
 }
 
 func WrapReq[T any](fn func(ctx *gin.Context, req T) (Result, error)) gin.HandlerFunc {

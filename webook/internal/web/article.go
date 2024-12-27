@@ -215,7 +215,7 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context, uc jwt.UserClaims) (Result,
 		var er error
 		getResp, er = h.interSvc.Get(ctx, &interactv1.GetRequest{
 			Biz:   h.biz,
-			BidId: id,
+			BizId: id,
 			Uid:   uc.UserId,
 		})
 		return er
@@ -231,7 +231,7 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context, uc jwt.UserClaims) (Result,
 	go func() {
 		_, er := h.interSvc.IncrReadCnt(ctx, &interactv1.IncrReadCntRequest{
 			Biz:   h.biz,
-			BidId: id,
+			BizId: id,
 		})
 		if er != nil {
 			h.l.Error("增加阅读计数失败", logger.Error(er), logger.Int64("article_id", art.Id))
@@ -260,13 +260,13 @@ func (h *ArticleHandler) Like(ctx *gin.Context, req LikeReq, uc jwt.UserClaims) 
 	if req.Like {
 		_, err = h.interSvc.Like(ctx, &interactv1.LikeRequest{
 			Biz:   h.biz,
-			BidId: req.Id,
+			BizId: req.Id,
 			Uid:   uc.UserId,
 		})
 	} else {
 		_, err = h.interSvc.CancelLike(ctx, &interactv1.CancelLikeRequest{
 			Biz:   h.biz,
-			BidId: req.Id,
+			BizId: req.Id,
 			Uid:   uc.UserId,
 		})
 	}
@@ -281,7 +281,7 @@ func (h *ArticleHandler) Like(ctx *gin.Context, req LikeReq, uc jwt.UserClaims) 
 func (h *ArticleHandler) Collect(ctx *gin.Context, req CollectReq, uc jwt.UserClaims) (Result, error) {
 	_, err := h.interSvc.Collect(ctx, &interactv1.CollectRequest{
 		Biz:   h.biz,
-		BidId: req.Id,
+		BizId: req.Id,
 		Cid:   req.Cid,
 		Uid:   uc.UserId,
 	})

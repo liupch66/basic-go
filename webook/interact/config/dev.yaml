@@ -1,5 +1,16 @@
+#db:
+#  dsn: "root:root@tcp(localhost:3306)/webook"
+
 db:
-  dsn: "root:root@tcp(localhost:3306)/webook"
+  src:
+    dsn: "root:root@tcp(localhost:3306)/webook"
+  dst:
+    dsn: "root:root@tcp(localhost:3306)/webook_interact"
+
+migrator:
+  pattern: "SRC_ONLY"
+  http:
+    addr: ":8083"
 
 redis:
   addr: "localhost:6379"

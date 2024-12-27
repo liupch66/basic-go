@@ -37,6 +37,7 @@ func InitInteractGRPCClient(svc service.InteractService) interactv1.InteractServ
 	local := client.NewInteractLocalAdapter(svc)
 	res := client.NewInteractGrayscaleRelease(remote, local, cfg.Threshold)
 
+	viper.WatchConfig()
 	viper.OnConfigChange(func(in fsnotify.Event) {
 		var newCfg Config
 		if err := viper.UnmarshalKey("grpc.client.interact", &cfg); err != nil {

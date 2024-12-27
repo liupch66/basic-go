@@ -15,14 +15,14 @@ service InteractService {
 
 message IncrReadCntRequest {
   string biz = 1;
-  int64 bid_id = 2;
+  int64 biz_id = 2;
 }
 
 message IncrReadCntResponse {}
 
 message LikeRequest {
   string biz = 1;
-  int64 bid_id = 2;
+  int64 biz_id = 2;
   int64 uid = 3;
 }
 
@@ -30,7 +30,7 @@ message LikeResponse {}
 
 message CancelLikeRequest {
   string biz = 1;
-  int64 bid_id = 2;
+  int64 biz_id = 2;
   int64 uid = 3;
 }
 
@@ -38,7 +38,7 @@ message CancelLikeResponse {}
 
 message CollectRequest {
   string biz = 1;
-  int64 bid_id = 2;
+  int64 biz_id = 2;
   int64 cid = 3;
   int64 uid = 4;
 }
@@ -47,7 +47,7 @@ message CollectResponse {}
 
 message GetRequest {
   string biz = 1;
-  int64 bid_id = 2;
+  int64 biz_id = 2;
   int64 uid = 3;
 }
 

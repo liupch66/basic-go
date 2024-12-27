@@ -20,7 +20,10 @@ import (
 // Injectors from wire.go:
 
 func InitApp() *app {
-	db := ioc.InitDB()
+	srcDB := ioc.InitSrcDB()
+	dstDB := ioc.InitDstDB()
+	doubleWritePool := ioc.InitDoubleWritePool(srcDB, dstDB)
+	db := ioc.InitBizDB(doubleWritePool)
 	interactDAO := dao.NewGORMInteractDAO(db)
 	cmdable := ioc.InitRedis()
 	interactCache := cache.NewRedisInteractCache(cmdable)
@@ -30,17 +33,24 @@ func InitApp() *app {
 	interactServiceServer := grpc.NewInteractServiceServer(interactService)
 	server := ioc.InitGRPCxServer(interactServiceServer)
 	client := ioc.InitKafka()
+	syncProducer := ioc.InitSyncProducer(client)
+	producer := ioc.InitMigratorProducer(syncProducer)
+	ginxServer := ioc.InitMigratorWeb(srcDB, dstDB, loggerV1, producer, doubleWritePool)
 	interactReadEventConsumer := events.NewInteractReadEventConsumer(client, interactRepository, loggerV1)
-	v := ioc.NewConsumers(interactReadEventConsumer)
+	consumer := ioc.InitFixDataConsumer(client, loggerV1, srcDB, dstDB)
+	v := ioc.NewConsumers(interactReadEventConsumer, consumer)
 	mainApp := &app{
-		server:    server,
-		consumers: v,
+		server:         server,
+		migratorServer: ginxServer,
+		consumers:      v,
 	}
 	return mainApp
 }
 
 // wire.go:
 
-var thirdPartyProvider = wire.NewSet(ioc.InitDB, ioc.InitRedis, ioc.InitLogger, ioc.InitKafka)
+var thirdPartyProvider = wire.NewSet(ioc.InitSrcDB, ioc.InitDstDB, ioc.InitDoubleWritePool, ioc.InitBizDB, ioc.InitRedis, ioc.InitLogger, ioc.InitKafka, ioc.InitSyncProducer)
 
 var interactServiceProvider = wire.NewSet(dao.NewGORMInteractDAO, cache.NewRedisInteractCache, repository.NewCachedInteractRepository, service.NewInteractService)
+
+var migratorProvider = wire.NewSet(ioc.InitFixDataConsumer, ioc.InitMigratorProducer, ioc.InitMigratorWeb)

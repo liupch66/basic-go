@@ -7,8 +7,8 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	"github.com/liupch66/basic-go/webook/migrator"
-	"github.com/liupch66/basic-go/webook/migrator/events"
+	"github.com/liupch66/basic-go/webook/pkg/migrator"
+	"github.com/liupch66/basic-go/webook/pkg/migrator/events"
 )
 
 type Fixer[T migrator.Entity] struct {
@@ -19,7 +19,7 @@ type Fixer[T migrator.Entity] struct {
 
 func NewFixer[T migrator.Entity](base *gorm.DB, target *gorm.DB) (*Fixer[T], error) {
 	var dst T
-	rows, err := target.Model(&dst).Rows()
+	rows, err := target.Model(&dst).Limit(1).Rows()
 	if err != nil {
 		return nil, err
 	}
@@ -45,6 +45,8 @@ func (f *Fixer[T]) Fix(ctx context.Context, evt events.InconsistentEvent) error 
 		}).Create(&src).Error
 	case errors.Is(err, gorm.ErrRecordNotFound):
 		return f.target.WithContext(ctx).Where("id = ?", src.ID()).Delete(new(T)).Error
+		// 简写
+		// return f.target.WithContext(ctx).Delete(new(T), src.ID()).Error
 	default:
 		return err
 	}

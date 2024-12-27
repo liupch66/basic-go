@@ -12,22 +12,25 @@ import (
 func TestConnPool(t *testing.T) {
 	src, err := gorm.Open(mysql.Open("root:root@tcp(localhost:3306)/webook"))
 	require.NoError(t, err)
-	err = src.AutoMigrate(&Interact{})
-	require.NoError(t, err)
-
 	dst, err := gorm.Open(mysql.Open("root:root@tcp(localhost:3306)/webook_interact"))
-	require.NoError(t, err)
-	err = dst.AutoMigrate(&Interact{})
 	require.NoError(t, err)
 
 	db, err := gorm.Open(mysql.New(mysql.Config{
 		Conn: &DoubleWritePool{
 			src:    src.ConnPool,
 			dst:    dst.ConnPool,
-			patter: atomic.NewString(patternSrcFirst),
+			patter: atomic.NewString(PatternSrcFirst),
 		},
 	}))
 	require.NoError(t, err)
+	// 为了反复测试
+	db.Exec("truncate table webook.interacts")
+	db.Exec("truncate table webook_interact.interacts")
+	err = src.AutoMigrate(&Interact{})
+	require.NoError(t, err)
+	err = dst.AutoMigrate(&Interact{})
+	require.NoError(t, err)
+
 	err = db.Create(&Interact{
 		Biz:   "test",
 		BizId: 1235,

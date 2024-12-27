@@ -28,7 +28,7 @@ func (i *InteractServiceServer) Register(server *grpc.Server) {
 
 func (i *InteractServiceServer) IncrReadCnt(ctx context.Context, request *interactv1.IncrReadCntRequest) (*interactv1.IncrReadCntResponse, error) {
 	// request.Biz 大部分时候也没有问题，为了万无一失最好还是 request.GetBiz()，这个有判断 request 是否是 nil
-	err := i.svc.IncrReadCnt(ctx, request.GetBiz(), request.GetBidId())
+	err := i.svc.IncrReadCnt(ctx, request.GetBiz(), request.GetBizId())
 	// 标准写法
 	// if err != nil {
 	// 	return nil, err
@@ -44,22 +44,22 @@ func (i *InteractServiceServer) Like(ctx context.Context, request *interactv1.Li
 		// return nil, errors.New("uid 非法")
 		return nil, status.Error(codes.InvalidArgument, "uid 非法")
 	}
-	err := i.svc.Like(ctx, request.GetBiz(), request.GetBidId(), request.GetUid())
+	err := i.svc.Like(ctx, request.GetBiz(), request.GetBizId(), request.GetUid())
 	return &interactv1.LikeResponse{}, err
 }
 
 func (i *InteractServiceServer) CancelLike(ctx context.Context, request *interactv1.CancelLikeRequest) (*interactv1.CancelLikeResponse, error) {
-	err := i.svc.CancelLike(ctx, request.GetBiz(), request.GetBidId(), request.GetUid())
+	err := i.svc.CancelLike(ctx, request.GetBiz(), request.GetBizId(), request.GetUid())
 	return &interactv1.CancelLikeResponse{}, err
 }
 
 func (i *InteractServiceServer) Collect(ctx context.Context, request *interactv1.CollectRequest) (*interactv1.CollectResponse, error) {
-	err := i.svc.Collect(ctx, request.GetBiz(), request.GetBidId(), request.GetCid(), request.GetUid())
+	err := i.svc.Collect(ctx, request.GetBiz(), request.GetBizId(), request.GetCid(), request.GetUid())
 	return &interactv1.CollectResponse{}, err
 }
 
 func (i *InteractServiceServer) Get(ctx context.Context, request *interactv1.GetRequest) (*interactv1.GetResponse, error) {
-	res, err := i.svc.Get(ctx, request.GetBiz(), request.GetBidId(), request.GetUid())
+	res, err := i.svc.Get(ctx, request.GetBiz(), request.GetBizId(), request.GetUid())
 	if err != nil {
 		return nil, err
 	}

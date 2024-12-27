@@ -6,6 +6,8 @@ import (
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+
+	"github.com/liupch66/basic-go/webook/pkg/migrator"
 )
 
 type Interact struct {
@@ -18,6 +20,15 @@ type Interact struct {
 	CollectCnt int64
 	Ctime      int64
 	Utime      int64
+}
+
+func (i Interact) ID() int64 {
+	return i.Id
+}
+
+func (i Interact) CompareTo(dst migrator.Entity) bool {
+	dstVal, ok := dst.(Interact)
+	return ok && i == dstVal
 }
 
 // UserLikeBiz 用户点赞表
@@ -111,6 +122,7 @@ func (dao *GORMInteractDAO) IncrReadCnt(ctx context.Context, biz string, bizId i
 		Ctime:   now,
 		Utime:   now,
 	}).Error
+	// todo: 冲突时不是更新吗？为什么主键增加？WTF？
 }
 
 func (dao *GORMInteractDAO) InsertLikeInfo(ctx context.Context, biz string, bizId int64, uid int64) error {

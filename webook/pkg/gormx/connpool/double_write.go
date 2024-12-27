@@ -11,10 +11,10 @@ import (
 
 // 双写的四个阶段
 const (
-	patternSrcOnly  = "SRC_ONLY"
-	patternSrcFirst = "SRC_FIRST"
-	patternDstFirst = "DST_FIRST"
-	patternDstOnly  = "DST_ONLY"
+	PatternSrcOnly  = "SRC_ONLY"
+	PatternSrcFirst = "SRC_FIRST"
+	PatternDstFirst = "DST_FIRST"
+	PatternDstOnly  = "DST_ONLY"
 )
 
 var errUnknownPattern = errors.New("未知的双写 pattern")
@@ -25,11 +25,11 @@ type DoubleWritePool struct {
 	patter *atomic.String
 }
 
-func NewDoubleWritePool(src gorm.ConnPool, dst gorm.ConnPool) *DoubleWritePool {
+func NewDoubleWritePool(srcDB *gorm.DB, dstDB *gorm.DB, pattern string) *DoubleWritePool {
 	return &DoubleWritePool{
-		src:    src,
-		dst:    dst,
-		patter: atomic.NewString(patternSrcOnly),
+		src:    srcDB.ConnPool,
+		dst:    dstDB.ConnPool,
+		patter: atomic.NewString(pattern),
 	}
 }
 
@@ -49,11 +49,11 @@ func (d *DoubleWritePool) PrepareContext(ctx context.Context, query string) (*sq
 // ExecContext 执行没有返回结果的数据操作，如 INSERT、UPDATE、DELETE
 func (d *DoubleWritePool) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
 	switch d.patter.Load() {
-	case patternSrcOnly:
+	case PatternSrcOnly:
 		// 虽然传入 args 编译器不报错，但是执行时 sql 会报错
 		// sql: converting argument $1 type: unsupported type []interface {}, a slice of interface
 		return d.src.ExecContext(ctx, query, args...)
-	case patternSrcFirst:
+	case PatternSrcFirst:
 		res, err := d.src.ExecContext(ctx, query, args...)
 		if err == nil {
 			_, err := d.dst.ExecContext(ctx, query, args...)
@@ -63,7 +63,7 @@ func (d *DoubleWritePool) ExecContext(ctx context.Context, query string, args ..
 			return res, nil
 		}
 		return res, err
-	case patternDstFirst:
+	case PatternDstFirst:
 		res, err := d.dst.ExecContext(ctx, query, args...)
 		if err == nil {
 			_, err := d.src.ExecContext(ctx, query, args...)
@@ -73,7 +73,7 @@ func (d *DoubleWritePool) ExecContext(ctx context.Context, query string, args ..
 			return res, nil
 		}
 		return res, err
-	case patternDstOnly:
+	case PatternDstOnly:
 		return d.dst.ExecContext(ctx, query, args...)
 	default:
 		return nil, errUnknownPattern
@@ -83,9 +83,9 @@ func (d *DoubleWritePool) ExecContext(ctx context.Context, query string, args ..
 // QueryContext 执行查询并返回多行结果，返回 *sql.Rows，你可以通过它遍历所有查询结果。
 func (d *DoubleWritePool) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
 	switch d.patter.Load() {
-	case patternSrcOnly, patternSrcFirst:
+	case PatternSrcOnly, PatternSrcFirst:
 		return d.src.QueryContext(ctx, query, args...)
-	case patternDstFirst, patternDstOnly:
+	case PatternDstFirst, PatternDstOnly:
 		return d.dst.QueryContext(ctx, query, args...)
 	default:
 		return nil, errUnknownPattern
@@ -95,9 +95,9 @@ func (d *DoubleWritePool) QueryContext(ctx context.Context, query string, args .
 // QueryRowContext 执行查询并返回单行结果，通常用于获取一条记录的数据。
 func (d *DoubleWritePool) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
 	switch d.patter.Load() {
-	case patternSrcOnly, patternSrcFirst:
+	case PatternSrcOnly, PatternSrcFirst:
 		return d.src.QueryRowContext(ctx, query, args...)
-	case patternDstFirst, patternDstOnly:
+	case PatternDstFirst, PatternDstOnly:
 		return d.dst.QueryRowContext(ctx, query, args...)
 	default:
 		// 因为返回值里面没有 error，只能 panic 掉
@@ -109,7 +109,7 @@ func (d *DoubleWritePool) QueryRowContext(ctx context.Context, query string, arg
 func (d *DoubleWritePool) BeginTx(ctx context.Context, opts *sql.TxOptions) (gorm.ConnPool, error) {
 	pattern := d.patter.Load()
 	switch pattern {
-	case patternSrcOnly:
+	case PatternSrcOnly:
 		srcTx, err := d.src.(gorm.TxBeginner).BeginTx(ctx, opts)
 		if err != nil {
 			return nil, err
@@ -118,7 +118,7 @@ func (d *DoubleWritePool) BeginTx(ctx context.Context, opts *sql.TxOptions) (gor
 			src:    srcTx,
 			patter: atomic.NewString(pattern),
 		}, nil
-	case patternSrcFirst:
+	case PatternSrcFirst:
 		srcTx, err := d.src.(gorm.TxBeginner).BeginTx(ctx, opts)
 		if err == nil {
 			dstTx, err := d.dst.(gorm.TxBeginner).BeginTx(ctx, opts)
@@ -133,7 +133,7 @@ func (d *DoubleWritePool) BeginTx(ctx context.Context, opts *sql.TxOptions) (gor
 			}, nil
 		}
 		return nil, err
-	case patternDstFirst:
+	case PatternDstFirst:
 		dstTx, err := d.dst.(gorm.TxBeginner).BeginTx(ctx, opts)
 		if err == nil {
 			srcTx, err := d.src.(gorm.TxBeginner).BeginTx(ctx, opts)
@@ -147,7 +147,7 @@ func (d *DoubleWritePool) BeginTx(ctx context.Context, opts *sql.TxOptions) (gor
 			}, nil
 		}
 		return nil, err
-	case patternDstOnly:
+	case PatternDstOnly:
 		dstTx, err := d.dst.(gorm.TxBeginner).BeginTx(ctx, opts)
 		if err != nil {
 			return nil, err
@@ -170,9 +170,9 @@ type DoubleWritePoolTx struct {
 
 func (d *DoubleWritePoolTx) Commit() error {
 	switch d.patter.Load() {
-	case patternSrcOnly:
+	case PatternSrcOnly:
 		return d.src.Commit()
-	case patternSrcFirst:
+	case PatternSrcFirst:
 		err := d.src.Commit()
 		if err != nil {
 			return err
@@ -184,7 +184,7 @@ func (d *DoubleWritePoolTx) Commit() error {
 			}
 		}
 		return nil
-	case patternDstFirst:
+	case PatternDstFirst:
 		err := d.dst.Commit()
 		if err != nil {
 			return err
@@ -196,7 +196,7 @@ func (d *DoubleWritePoolTx) Commit() error {
 			}
 		}
 		return nil
-	case patternDstOnly:
+	case PatternDstOnly:
 		return d.dst.Commit()
 	default:
 		return errUnknownPattern
@@ -205,9 +205,9 @@ func (d *DoubleWritePoolTx) Commit() error {
 
 func (d *DoubleWritePoolTx) Rollback() error {
 	switch d.patter.Load() {
-	case patternSrcOnly:
+	case PatternSrcOnly:
 		return d.src.Rollback()
-	case patternSrcFirst:
+	case PatternSrcFirst:
 		err := d.src.Rollback()
 		if err != nil {
 			return err
@@ -219,7 +219,7 @@ func (d *DoubleWritePoolTx) Rollback() error {
 			}
 		}
 		return nil
-	case patternDstFirst:
+	case PatternDstFirst:
 		err := d.dst.Rollback()
 		if err != nil {
 			return err
@@ -231,7 +231,7 @@ func (d *DoubleWritePoolTx) Rollback() error {
 			}
 		}
 		return nil
-	case patternDstOnly:
+	case PatternDstOnly:
 		return d.dst.Rollback()
 	default:
 		return errUnknownPattern
@@ -246,9 +246,9 @@ func (d *DoubleWritePoolTx) PrepareContext(ctx context.Context, query string) (*
 
 func (d *DoubleWritePoolTx) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
 	switch d.patter.Load() {
-	case patternSrcOnly:
+	case PatternSrcOnly:
 		return d.src.ExecContext(ctx, query, args...)
-	case patternSrcFirst:
+	case PatternSrcFirst:
 		res, err := d.src.ExecContext(ctx, query, args...)
 		if err == nil {
 			// 可能 dst 开事务失败了，不然会 panic
@@ -261,7 +261,7 @@ func (d *DoubleWritePoolTx) ExecContext(ctx context.Context, query string, args 
 			}
 		}
 		return res, err
-	case patternDstFirst:
+	case PatternDstFirst:
 		res, err := d.dst.ExecContext(ctx, query, args...)
 		if err == nil {
 			if d.src != nil {
@@ -273,7 +273,7 @@ func (d *DoubleWritePoolTx) ExecContext(ctx context.Context, query string, args 
 			}
 		}
 		return res, err
-	case patternDstOnly:
+	case PatternDstOnly:
 		return d.dst.ExecContext(ctx, query, args...)
 	default:
 		return nil, errUnknownPattern
@@ -282,9 +282,9 @@ func (d *DoubleWritePoolTx) ExecContext(ctx context.Context, query string, args 
 
 func (d *DoubleWritePoolTx) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
 	switch d.patter.Load() {
-	case patternSrcOnly, patternSrcFirst:
+	case PatternSrcOnly, PatternSrcFirst:
 		return d.src.QueryContext(ctx, query, args...)
-	case patternDstFirst, patternDstOnly:
+	case PatternDstFirst, PatternDstOnly:
 		return d.dst.QueryContext(ctx, query, args...)
 	default:
 		return nil, errUnknownPattern
@@ -293,9 +293,9 @@ func (d *DoubleWritePoolTx) QueryContext(ctx context.Context, query string, args
 
 func (d *DoubleWritePoolTx) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
 	switch d.patter.Load() {
-	case patternSrcOnly, patternSrcFirst:
+	case PatternSrcOnly, PatternSrcFirst:
 		return d.src.QueryRowContext(ctx, query, args...)
-	case patternDstFirst, patternDstOnly:
+	case PatternDstFirst, PatternDstOnly:
 		return d.dst.QueryRowContext(ctx, query, args...)
 	default:
 		// 因为返回值里面没有 error，只能 panic 掉
