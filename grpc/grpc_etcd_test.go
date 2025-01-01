@@ -63,7 +63,12 @@ func (s *EtcdTestSuite) TestServer() {
 	key := "service/user/" + addr
 	// AddEndpoint registers a single endpoint in etcd.
 	// endpoints: endpoint key should be prefixed with '$target/'
-	err = em.AddEndpoint(context.Background(), key, endpoints.Endpoint{Addr: addr}, clientv3.WithLease(leaseResp.ID))
+	err = em.AddEndpoint(context.Background(), key, endpoints.Endpoint{
+		Addr: addr,
+		Metadata: map[string]any{
+			"weight": 100,
+		},
+	}, clientv3.WithLease(leaseResp.ID))
 	require.NoError(s.T(), err)
 	// 命令行 etcdctl --endpoints=http://127.0.0.1:22379 get service/user/127.0.0.1:8090 能查看到信息
 
@@ -87,8 +92,11 @@ func (s *EtcdTestSuite) TestServer() {
 				// 方法一
 				// upsert 或者 set 的语义
 				err := em.AddEndpoint(context.Background(), key, endpoints.Endpoint{
-					Addr:     addr,
-					Metadata: now.Format(time.DateTime),
+					Addr: addr,
+					Metadata: map[string]any{
+						"weight": 200,
+						"time":   now,
+					},
 				}, clientv3.WithLease(leaseResp.ID))
 				if err != nil {
 					s.T().Log(err)
