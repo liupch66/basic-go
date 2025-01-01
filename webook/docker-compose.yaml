@@ -34,26 +34,26 @@ services:
     ports:
       - "27017:27017"
 
-  mongo-express:
-    image: mongo-express:1.0.2
-    restart: always
-#    depends_on:
-#      - mongodb
-    ports:
-#     - 访问 8081
-      - "8081:8081"
-    environment:
-      # 主要是保护 Mongo Express 的 UI，通过基本认证确保只有授权用户能够访问
-      # 这就是默认值,不写也可以,docker 启动时日志会红字显示:
-      # basicAuth credentials are "admin:pass", it is recommended you change this in your config.js!
-#      ME_CONFIG_BASICAUTH_USERNAME: admin
-#      ME_CONFIG_BASICAUTH_PASSWORD: pass
-      # Mongo Express 用来连接 MongoDB 数据库的凭据，确保它能正确执行对数据库的操作（如查看和修改数据）
-#      ME_CONFIG_MONGODB_ENABLE_ADMIN: true
-      ME_CONFIG_MONGODB_ADMINUSERNAME: root
-      ME_CONFIG_MONGODB_ADMINPASSWORD: example
-#     这个url就是根据 mongo 里面的配置搞出来的
-      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongodb:27017/
+#  mongo-express:
+#    image: mongo-express:1.0.2
+#    restart: always
+##    depends_on:
+##      - mongodb
+#    ports:
+##     - 访问 8081
+#      - "8081:8081"
+#    environment:
+#      # 主要是保护 Mongo Express 的 UI，通过基本认证确保只有授权用户能够访问
+#      # 这就是默认值,不写也可以,docker 启动时日志会红字显示:
+#      # basicAuth credentials are "admin:pass", it is recommended you change this in your config.js!
+##      ME_CONFIG_BASICAUTH_USERNAME: admin
+##      ME_CONFIG_BASICAUTH_PASSWORD: pass
+#      # Mongo Express 用来连接 MongoDB 数据库的凭据，确保它能正确执行对数据库的操作（如查看和修改数据）
+##      ME_CONFIG_MONGODB_ENABLE_ADMIN: true
+#      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+#      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+##     这个url就是根据 mongo 里面的配置搞出来的
+#      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongodb:27017/
 
   kafka:
     image: 'bitnami/kafka:3.6.0'
@@ -86,7 +86,19 @@ services:
     ports:
       - '9411:9411'
 
-  grafana:
-      image: grafana/grafana-enterprise:11.4.0
-      ports:
-        - '3000:3000'
+#  grafana:
+#      image: grafana/grafana-enterprise:11.4.0
+#      ports:
+#        - '3000:3000'
+
+  nacos:
+    image: nacos/nacos-server:v2.4.3
+    privileged: true
+    environment:
+      - MODE=standalone
+    # 启动之后查看：http://localhost:8848/nacos
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+    restart: always
+    working_dir: /home/nacos

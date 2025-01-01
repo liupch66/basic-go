@@ -38,6 +38,15 @@ func main() {
 	})
 	server.Run(":8080")
 
+	// gin是封装的http.server，但是 gin 没有优雅退出，http.server 有
+	// http.Server{}.Shutdown()
+
+	// httpServer := http.Server{
+	// 	Port:                         ":8080",
+	// 	Handler:                     app.web.Handler(),
+	// }
+	// httpServer.Shutdown()
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 	closeFunc(ctx)

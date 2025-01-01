@@ -28,8 +28,8 @@ func InitDB(l logger.LoggerV1) *gorm.DB {
 			SlowThreshold:             time.Millisecond * 100,
 			Colorful:                  true,
 			IgnoreRecordNotFoundError: true,
-			ParameterizedQueries:      true,
-			LogLevel:                  glogger.Info,
+			// ParameterizedQueries:      true,
+			LogLevel: glogger.Info,
 		}),
 	})
 	if err != nil {

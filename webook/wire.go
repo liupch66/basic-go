@@ -5,11 +5,6 @@ package main
 import (
 	"github.com/google/wire"
 
-	"github.com/liupch66/basic-go/webook/interact/events"
-	repository2 "github.com/liupch66/basic-go/webook/interact/repository"
-	cache2 "github.com/liupch66/basic-go/webook/interact/repository/cache"
-	dao2 "github.com/liupch66/basic-go/webook/interact/repository/dao"
-	service2 "github.com/liupch66/basic-go/webook/interact/service"
 	article2 "github.com/liupch66/basic-go/webook/internal/events/article"
 	"github.com/liupch66/basic-go/webook/internal/repository"
 	"github.com/liupch66/basic-go/webook/internal/repository/article"
@@ -33,16 +28,19 @@ func InitApp() *App {
 	wire.Build(
 		ioc.InitDB, ioc.InitRedis, ioc.InitRLockClient, ioc.InitLogger,
 		ioc.InitKafka, ioc.InitSyncProducer, article2.NewSaramaSyncProducer,
-		events.NewInteractReadEventBatchConsumer, ioc.NewConsumers,
+		ioc.NewConsumers,
 
-		dao.NewUserDAO, article3.NewGORMArticleDAO, dao2.NewGORMInteractDAO,
-		cache.NewUserCache, cache.NewCodeCache, cache2.NewRedisInteractCache, cache.NewRedisArticleCache,
+		dao.NewUserDAO, article3.NewGORMArticleDAO,
+		cache.NewUserCache, cache.NewCodeCache, cache.NewRedisArticleCache,
 
 		repository.NewUserRepository, repository.NewCodeRepository, article.NewCachedArticleRepository,
-		repository2.NewCachedInteractRepository,
 
 		service.NewUserService, service.NewCodeService, ioc.InitSmsService, ioc.InitWechatService,
-		service.NewArticleService, service2.NewInteractService, ioc.InitInteractGRPCClient,
+		service.NewArticleService,
+		// 流量控制的 client
+		// service2.NewInteractService, ioc.InitInteractGRPCClient,
+		// etcd 服务注册发现的 client
+		ioc.InitEtcdClient, ioc.InitInteractGRPCClientV1,
 
 		rankServiceSet,
 		ioc.InitRankJob,

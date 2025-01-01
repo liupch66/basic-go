@@ -11,9 +11,21 @@ kafka:
   addrs:
     - "localhost:9094"
 
+# 流量控制 grpc client 的配置
+#grpc:
+#  client:
+#    interact:
+#      addr: "localhost:8090"
+#      secure: false
+#      threshold: 100
+
+etcd:
+  endpoints:
+    - "localhost:22379"
+
+# etcd 服务注册发现
 grpc:
   client:
     interact:
-      addr: "localhost:8090"
+      name: "interact"
       secure: false
-      threshold: 100

@@ -8,11 +8,6 @@ package main
 
 import (
 	"github.com/google/wire"
-	"github.com/liupch66/basic-go/webook/interact/events"
-	repository2 "github.com/liupch66/basic-go/webook/interact/repository"
-	cache2 "github.com/liupch66/basic-go/webook/interact/repository/cache"
-	dao2 "github.com/liupch66/basic-go/webook/interact/repository/dao"
-	service2 "github.com/liupch66/basic-go/webook/interact/service"
 	article3 "github.com/liupch66/basic-go/webook/internal/events/article"
 	"github.com/liupch66/basic-go/webook/internal/repository"
 	article2 "github.com/liupch66/basic-go/webook/internal/repository/article"
@@ -56,18 +51,14 @@ func InitApp() *App {
 	syncProducer := ioc.InitSyncProducer(client)
 	producer := article3.NewSaramaSyncProducer(syncProducer)
 	articleService := service.NewArticleService(articleRepository, loggerV1, producer)
-	interactDAO := dao2.NewGORMInteractDAO(db)
-	interactCache := cache2.NewRedisInteractCache(cmdable)
-	interactRepository := repository2.NewCachedInteractRepository(interactDAO, interactCache, loggerV1)
-	interactService := service2.NewInteractService(interactRepository, loggerV1)
-	interactServiceClient := ioc.InitInteractGRPCClient(interactService)
+	clientv3Client := ioc.InitEtcdClient()
+	interactServiceClient := ioc.InitInteractGRPCClientV1(clientv3Client)
 	articleHandler := web.NewArticleHandler(articleService, interactServiceClient, loggerV1)
 	engine := ioc.InitWebServer(v, userHandler, oAuth2WechatHandler, articleHandler)
-	interactReadEventBatchConsumer := events.NewInteractReadEventBatchConsumer(client, interactRepository, loggerV1)
-	v2 := ioc.NewConsumers(interactReadEventBatchConsumer)
-	localRankCache := cache.NewRankLocalCache()
+	v2 := ioc.NewConsumers()
+	rankLocalCache := cache.NewRankLocalCache()
 	redisRankCache := cache.NewRedisRankCache(cmdable)
-	rankRepository := repository.NewCachedRankRepository(localRankCache, redisRankCache)
+	rankRepository := repository.NewCachedRankRepository(rankLocalCache, redisRankCache)
 	rankService := service.NewBatchRankService(articleService, interactServiceClient, rankRepository)
 	rlockClient := ioc.InitRLockClient(cmdable)
 	rankJob := ioc.InitRankJob(rankService, rlockClient, loggerV1)

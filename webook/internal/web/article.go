@@ -40,13 +40,14 @@ func (h *ArticleHandler) RegisterRoutes(server *gin.Engine) {
 		// 创作者的查询接口,查询列表页
 		ag.POST("/list", ginx.WrapReqAndClaims[ListReq, jwt.UserClaims](h.List))
 		ag.GET("/detail/:id", ginx.WrapClaims[jwt.UserClaims](h.Detail))
-	}
-	pg := server.Group("/pub")
-	{
-		pg.GET("/:id", ginx.WrapClaims[jwt.UserClaims](h.PubDetail))
-		// 点赞和取消点赞都是这个
-		pg.POST("/like", ginx.WrapReqAndClaims[LikeReq](h.Like))
-		pg.POST("/collect", ginx.WrapReqAndClaims[CollectReq](h.Collect))
+
+		pg := ag.Group("/pub")
+		{
+			pg.GET("/:id", ginx.WrapClaims[jwt.UserClaims](h.PubDetail))
+			// 点赞和取消点赞都是这个
+			pg.POST("/like", ginx.WrapReqAndClaims[LikeReq](h.Like))
+			pg.POST("/collect", ginx.WrapReqAndClaims[CollectReq](h.Collect))
+		}
 	}
 }
 

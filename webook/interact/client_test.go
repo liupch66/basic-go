@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	clientv3 "go.etcd.io/etcd/client/v3"
+	"go.etcd.io/etcd/client/v3/naming/resolver"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -44,4 +46,25 @@ func TestGRPCDoubleWrite(t *testing.T) {
 		BizId: 55,
 	})
 	require.NoError(t, err)
+}
+
+func TestEtcdGRPCClient(t *testing.T) {
+	cli, err := clientv3.NewFromURL("localhost:22379")
+	require.NoError(t, err)
+	bd, err := resolver.NewBuilder(cli)
+	require.NoError(t, err)
+	cc, err := grpc.NewClient("etcd:///service/interact",
+		grpc.WithResolvers(bd),
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
+	require.NoError(t, err)
+	client := interactv1.NewInteractServiceClient(cc)
+	resp, err := client.GetByIds(context.Background(), &interactv1.GetByIdsRequest{
+		Biz:    "test",
+		BizIds: []int64{1, 2, 3, 4, 5, 6, 7, 8},
+	})
+	require.NoError(t, err)
+	for k, v := range resp.Interacts {
+		t.Logf("%d, %v\n", k, v)
+
+	}
 }

@@ -4,7 +4,6 @@ import (
 	"github.com/IBM/sarama"
 	"github.com/spf13/viper"
 
-	events2 "github.com/liupch66/basic-go/webook/interact/events"
 	"github.com/liupch66/basic-go/webook/internal/events"
 )
 
@@ -34,6 +33,6 @@ func InitSyncProducer(client sarama.Client) sarama.SyncProducer {
 	return producer
 }
 
-func NewConsumers(c0 *events2.InteractReadEventBatchConsumer) []events.Consumer {
-	return []events.Consumer{c0}
+func NewConsumers() []events.Consumer {
+	return []events.Consumer{}
 }
