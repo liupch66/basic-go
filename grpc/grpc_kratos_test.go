@@ -39,7 +39,8 @@ func (s *KratosTestSuite) TestServer() {
 
 func (s *KratosTestSuite) TestClient() {
 	r := etcd.New(s.etcdClient)
-	cc, err := grpc.DialInsecure(context.Background(), grpc.WithEndpoint("discovery:///user"), grpc.WithDiscovery(r))
+	cc, err := grpc.DialInsecure(context.Background(),
+		grpc.WithEndpoint("discovery:///user"), grpc.WithDiscovery(r))
 	require.NoError(s.T(), err)
 	defer cc.Close()
 
